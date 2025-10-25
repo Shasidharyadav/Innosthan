@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { BookOpen, Play, CheckCircle, Lock, Star } from 'lucide-react'
+import { Play, CheckCircle, Lock, Star } from 'lucide-react'
 
 const LearningHub = () => {
   const modules = [

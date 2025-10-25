@@ -3,11 +3,9 @@ import { Link } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { 
   Users, 
-  BookOpen, 
   TrendingUp, 
   Award,
   BarChart3,
-  Calendar,
   FileText,
   Target,
   GraduationCap,

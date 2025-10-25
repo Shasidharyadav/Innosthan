@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useAuthStore } from '../stores/authStore'
-import { User, Mail, Award, Calendar, Edit, Save, X } from 'lucide-react'
+import { Mail, Award, Calendar, Edit, Save, X } from 'lucide-react'
 import { useState } from 'react'
 
 const ProfilePage = () => {
