@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion'
-import { FileText, Download, BarChart3 } from 'lucide-react'
 
 const InstitutionReports = () => {
   return (

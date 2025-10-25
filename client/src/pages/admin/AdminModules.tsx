@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion'
-import { BookOpen, Plus, Edit } from 'lucide-react'
 
 const AdminModules = () => {
   return (

@@ -10,7 +10,6 @@ import {
   Calendar,
   Award,
   Zap,
-  TrendingUp,
   MessageCircle,
   Brain
 } from 'lucide-react'

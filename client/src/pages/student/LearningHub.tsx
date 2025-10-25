@@ -1,9 +1,7 @@
 import { motion } from 'framer-motion'
 import { Play, CheckCircle, Lock, Star, Clock, Users, Award, BookOpen } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
 
 const LearningHub = () => {
-  const navigate = useNavigate()
 
   const modules = [
     { 

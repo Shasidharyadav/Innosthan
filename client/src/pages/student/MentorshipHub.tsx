@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Brain, MessageCircle, Video, Calendar, Star, Clock, Users, Award, TrendingUp, BookOpen } from 'lucide-react'
+import { Brain, MessageCircle, Video, Calendar, Star, Clock, Users, BookOpen } from 'lucide-react'
 import { useState } from 'react'
 
 const MentorshipHub = () => {

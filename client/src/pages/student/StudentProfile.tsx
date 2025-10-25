@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useAuthStore } from '../../stores/authStore'
-import { Mail, Award, Calendar, Edit, Save, X, Trophy, Zap, BookOpen, Users, Target, TrendingUp } from 'lucide-react'
+import { Mail, Award, Calendar, Edit, Save, X, Trophy, Zap, BookOpen, Users, Target, Clock } from 'lucide-react'
 import { useState } from 'react'
 
 const StudentProfile = () => {

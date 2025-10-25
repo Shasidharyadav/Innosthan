@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion'
 import { useAuthStore } from '../../stores/authStore'
-import { Mail, Award, Calendar, Star } from 'lucide-react'
 
 const MentorProfile = () => {
   const { user } = useAuthStore()

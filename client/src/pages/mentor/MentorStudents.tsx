@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion'
-import { Users, TrendingUp, Award } from 'lucide-react'
 
 const MentorStudents = () => {
   return (

@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion'
-import { Users, Search, Filter, UserPlus } from 'lucide-react'
 
 const AdminUsers = () => {
   return (

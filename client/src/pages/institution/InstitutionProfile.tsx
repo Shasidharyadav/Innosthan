@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion'
 import { useAuthStore } from '../../stores/authStore'
-import { Mail, Calendar, Building } from 'lucide-react'
 
 const InstitutionProfile = () => {
   const { user } = useAuthStore()

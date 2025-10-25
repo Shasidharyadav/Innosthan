@@ -11,7 +11,6 @@ import {
   TrendingUp,
   Clock,
   BookOpen,
-  Target,
   Video
 } from 'lucide-react'
 

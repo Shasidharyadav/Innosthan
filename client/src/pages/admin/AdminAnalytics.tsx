@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion'
-import { BarChart3, TrendingUp, Users } from 'lucide-react'
 
 const AdminAnalytics = () => {
   return (

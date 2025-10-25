@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion'
-import { Calendar, Video, MessageCircle, Clock, Users } from 'lucide-react'
 
 const MentorSessions = () => {
   return (
