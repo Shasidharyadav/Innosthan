@@ -47,6 +47,41 @@ export const useAuthStore = create<AuthState>()(
       login: async (email: string, password: string) => {
         set({ isLoading: true })
         try {
+          // Hardcoded admin credentials
+          if (email === 'admin@innosthan.com' && password === 'admin123') {
+            const hardcodedAdmin: User = {
+              _id: 'admin-001',
+              email: 'admin@innosthan.com',
+              name: 'Admin User',
+              role: 'admin',
+              avatar: '',
+              xp: 1000,
+              level: 10,
+              badges: ['admin', 'super-user'],
+              isVerified: true,
+              createdAt: new Date().toISOString()
+            }
+            
+            const token = 'hardcoded-admin-token-' + Date.now()
+            
+            console.log('login - using hardcoded admin credentials')
+            
+            // Set authentication state
+            set({
+              user: hardcodedAdmin,
+              token,
+              isAuthenticated: true,
+              isLoading: false,
+            })
+            
+            // Set axios default header for future requests
+            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+            
+            console.log('login - hardcoded admin authentication successful')
+            return
+          }
+          
+          // For other users, still try API call (if backend is available)
           console.log('login - making API call to /api/auth/login')
           const response = await axios.post('/api/auth/login', {
             email,
@@ -119,6 +154,30 @@ export const useAuthStore = create<AuthState>()(
         if (!token) {
           console.log('checkAuth - no token, setting loading false')
           set({ isLoading: false })
+          return
+        }
+
+        // Check if it's a hardcoded admin token
+        if (token.startsWith('hardcoded-admin-token-')) {
+          console.log('checkAuth - using hardcoded admin token')
+          const hardcodedAdmin: User = {
+            _id: 'admin-001',
+            email: 'admin@innosthan.com',
+            name: 'Admin User',
+            role: 'admin',
+            avatar: '',
+            xp: 1000,
+            level: 10,
+            badges: ['admin', 'super-user'],
+            isVerified: true,
+            createdAt: new Date().toISOString()
+          }
+          
+          set({
+            user: hardcodedAdmin,
+            isAuthenticated: true,
+            isLoading: false,
+          })
           return
         }
 
