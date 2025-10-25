@@ -3,18 +3,35 @@ import { Toaster } from 'react-hot-toast'
 import { useAuthStore } from './stores/authStore'
 import { useEffect } from 'react'
 
-// Pages
+// Public Pages
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
-import Dashboard from './pages/Dashboard'
-import LearningHub from './pages/LearningHub'
-import CommunityHub from './pages/CommunityHub'
-import MentorshipHub from './pages/MentorshipHub'
-import AdminDashboard from './pages/AdminDashboard'
-import MentorDashboard from './pages/MentorDashboard'
-import InstitutionDashboard from './pages/InstitutionDashboard'
-import ProfilePage from './pages/ProfilePage'
+
+// Student Pages
+import StudentDashboard from './pages/student/StudentDashboard'
+import LearningHub from './pages/student/LearningHub'
+import CommunityHub from './pages/student/CommunityHub'
+import MentorshipHub from './pages/student/MentorshipHub'
+import StudentProfile from './pages/student/StudentProfile'
+
+// Mentor Pages
+import MentorDashboard from './pages/mentor/MentorDashboard'
+import MentorSessions from './pages/mentor/MentorSessions'
+import MentorStudents from './pages/mentor/MentorStudents'
+import MentorProfile from './pages/mentor/MentorProfile'
+
+// Admin Pages
+import AdminDashboard from './pages/admin/AdminDashboard'
+import AdminUsers from './pages/admin/AdminUsers'
+import AdminModules from './pages/admin/AdminModules'
+import AdminAnalytics from './pages/admin/AdminAnalytics'
+
+// Institution Pages
+import InstitutionDashboard from './pages/institution/InstitutionDashboard'
+import InstitutionCohorts from './pages/institution/InstitutionCohorts'
+import InstitutionReports from './pages/institution/InstitutionReports'
+import InstitutionProfile from './pages/institution/InstitutionProfile'
 
 // Components
 import ProtectedRoute from './components/ProtectedRoute'
@@ -47,14 +64,161 @@ function App() {
           }}
         />
         <Routes>
+          {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          
+          {/* Student Routes */}
+          <Route
+            path="/student/dashboard"
+            element={
+              <ProtectedRoute requiredRole="student">
+                <StudentDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/learning"
+            element={
+              <ProtectedRoute requiredRole="student">
+                <LearningHub />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/community"
+            element={
+              <ProtectedRoute requiredRole="student">
+                <CommunityHub />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/mentorship"
+            element={
+              <ProtectedRoute requiredRole="student">
+                <MentorshipHub />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/profile"
+            element={
+              <ProtectedRoute requiredRole="student">
+                <StudentProfile />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Mentor Routes */}
+          <Route
+            path="/mentor/dashboard"
+            element={
+              <ProtectedRoute requiredRole="mentor">
+                <MentorDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/mentor/sessions"
+            element={
+              <ProtectedRoute requiredRole="mentor">
+                <MentorSessions />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/mentor/students"
+            element={
+              <ProtectedRoute requiredRole="mentor">
+                <MentorStudents />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/mentor/profile"
+            element={
+              <ProtectedRoute requiredRole="mentor">
+                <MentorProfile />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Admin Routes */}
+          <Route
+            path="/admin/dashboard"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminUsers />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/modules"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminModules />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/analytics"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminAnalytics />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Institution Routes */}
+          <Route
+            path="/institution/dashboard"
+            element={
+              <ProtectedRoute requiredRole="institution">
+                <InstitutionDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/institution/cohorts"
+            element={
+              <ProtectedRoute requiredRole="institution">
+                <InstitutionCohorts />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/institution/reports"
+            element={
+              <ProtectedRoute requiredRole="institution">
+                <InstitutionReports />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/institution/profile"
+            element={
+              <ProtectedRoute requiredRole="institution">
+                <InstitutionProfile />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Legacy Routes - Redirect to role-specific routes */}
           <Route
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <StudentDashboard />
               </ProtectedRoute>
             }
           />
@@ -110,7 +274,7 @@ function App() {
             path="/profile"
             element={
               <ProtectedRoute>
-                <ProfilePage />
+                <StudentProfile />
               </ProtectedRoute>
             }
           />
