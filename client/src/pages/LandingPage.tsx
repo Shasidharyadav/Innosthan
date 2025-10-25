@@ -3,10 +3,8 @@ import { Link } from 'react-router-dom'
 import { 
   Sparkles, 
   Users, 
-  BookOpen, 
   Trophy, 
   Brain, 
-  Zap,
   ArrowRight,
   Play,
   Star,
