@@ -34,19 +34,36 @@ import { setupSocketHandlers } from './socket/handlers'
 
 const app = express()
 const server = createServer(app)
+
+// Configure allowed origins for CORS
+const allowedOrigins = process.env.CLIENT_URL 
+  ? process.env.CLIENT_URL.split(',').map(url => url.trim())
+  : ["http://localhost:3000", "https://innosthan.vercel.app"]
+
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true)
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}
+
 const io = new Server(server, {
-  cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
-    methods: ["GET", "POST"]
-  }
+  cors: corsOptions
 })
 
 // Security middleware
 app.use(helmet())
-app.use(cors({
-  origin: process.env.CLIENT_URL || "http://localhost:3000",
-  credentials: true
-}))
+app.use(cors(corsOptions))
 
 // Rate limiting
 const limiter = rateLimit({

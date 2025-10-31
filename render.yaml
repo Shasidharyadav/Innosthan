@@ -11,4 +11,6 @@ services:
         value: production
       - key: PORT
         value: 10000
+      - key: CLIENT_URL
+        value: https://innosthan.vercel.app,http://localhost:3000
 
