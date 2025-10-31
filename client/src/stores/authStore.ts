@@ -142,6 +142,11 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: true,
             isLoading: false,
           })
+          
+          // Set axios default header for future requests
+          if (token) {
+            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+          }
         } catch (error: any) {
           set({ isLoading: false })
           throw new Error(error.response?.data?.message || 'Registration failed')
@@ -244,3 +249,30 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 )
+
+// Set up axios interceptor to automatically add auth token to all requests
+axios.interceptors.request.use(
+  (config) => {
+    const token = useAuthStore.getState().token
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+
+// Set initial token from persisted store on app load
+const persistedState = localStorage.getItem('auth-storage')
+if (persistedState) {
+  try {
+    const parsed = JSON.parse(persistedState)
+    if (parsed?.state?.token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${parsed.state.token}`
+    }
+  } catch (e) {
+    console.error('Failed to parse persisted auth state:', e)
+  }
+}
