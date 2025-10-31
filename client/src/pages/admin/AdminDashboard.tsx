@@ -1,9 +1,64 @@
 import { motion } from 'framer-motion'
-import { useState } from 'react'
-import { Users, BookOpen, TrendingUp, Award, Settings, BarChart3 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
+import { useThemeStore } from '../../stores/themeStore'
+import { useAuthStore } from '../../stores/authStore'
+import { 
+  Users, 
+  BookOpen, 
+  TrendingUp, 
+  Award, 
+  Settings, 
+  BarChart3,
+  Sparkles,
+  Sun,
+  Moon,
+  Menu,
+  X
+} from 'lucide-react'
+import axios from 'axios'
 
 const AdminDashboard = () => {
+  const { isDarkMode, toggleTheme } = useThemeStore()
+  const { user } = useAuthStore()
   const [viewMode, setViewMode] = useState<'admin' | 'student' | 'mentor' | 'institution'>('admin')
+  const [analytics, setAnalytics] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.body.classList.add('dark')
+    } else {
+      document.body.classList.remove('dark')
+    }
+  }, [isDarkMode])
+
+  useEffect(() => {
+    fetchDashboardData()
+  }, [])
+
+  const fetchDashboardData = async () => {
+    try {
+      const analyticsRes = await axios.get('/api/analytics/platform').catch(() => ({ data: null }))
+      if (analyticsRes.data) {
+        setAnalytics(analyticsRes.data)
+        // Update stats with real data if available
+      }
+    } catch (error: any) {
+      console.error('Fetch dashboard data error:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
+        <div className="animate-spin w-12 h-12 border-4 border-violet-600 border-t-transparent rounded-full" />
+      </div>
+    )
+  }
 
   const getStatsForView = () => {
     switch (viewMode) {
@@ -46,106 +101,94 @@ const AdminDashboard = () => {
   ]
 
   return (
-    <div className="min-h-screen bg-dark-900 p-6">
-      <div className="max-w-7xl mx-auto">
-        <motion.div
-          className="mb-8"
-          initial={{ y: -50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold text-white mb-2">
-                {viewMode === 'admin' && 'Admin Dashboard'}
-                {viewMode === 'student' && 'Student View'}
-                {viewMode === 'mentor' && 'Mentor View'}
-                {viewMode === 'institution' && 'Institution View'}
-              </h1>
-              <p className="text-white/60 text-lg">
-                {viewMode === 'admin' && 'Manage your Innosthan platform'}
-                {viewMode === 'student' && 'Student perspective of the platform'}
-                {viewMode === 'mentor' && 'Mentor perspective of the platform'}
-                {viewMode === 'institution' && 'Institution perspective of the platform'}
-              </p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-white/60 text-sm mr-4">View as:</span>
-              <div className="flex bg-white/10 rounded-xl p-1">
-                <button
-                  onClick={() => setViewMode('admin')}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                    viewMode === 'admin' 
-                      ? 'bg-violet-500 text-white' 
-                      : 'text-white/60 hover:text-white'
-                  }`}
-                >
-                  Admin
-                </button>
-                <button
-                  onClick={() => setViewMode('student')}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                    viewMode === 'student' 
-                      ? 'bg-violet-500 text-white' 
-                      : 'text-white/60 hover:text-white'
-                  }`}
-                >
-                  Student
-                </button>
-                <button
-                  onClick={() => setViewMode('mentor')}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                    viewMode === 'mentor' 
-                      ? 'bg-violet-500 text-white' 
-                      : 'text-white/60 hover:text-white'
-                  }`}
-                >
-                  Mentor
-                </button>
-                <button
-                  onClick={() => setViewMode('institution')}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                    viewMode === 'institution' 
-                      ? 'bg-violet-500 text-white' 
-                      : 'text-white/60 hover:text-white'
-                  }`}
-                >
-                  Institution
-                </button>
-              </div>
-            </div>
-          </div>
-        </motion.div>
+    <div className="min-h-screen bg-white dark:bg-black transition-colors duration-500">
+      {/* Background */}
+      <div className="fixed inset-0 z-0">
+        {!isDarkMode ? (
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-white to-pink-50" />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-black" />
+        )}
+      </div>
 
-        {/* Stats Grid */}
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
+      {/* Navigation */}
+      <nav className={`relative z-10 flex items-center justify-between p-6 backdrop-blur-md ${
+        isDarkMode ? 'bg-black/50' : 'bg-white/80'
+      } border-b ${isDarkMode ? 'border-white/10' : 'border-gray-200'}`}>
+        <div className="flex items-center space-x-4">
+          <div className="w-10 h-10 bg-gradient-to-r from-violet-500 to-pink-500 rounded-xl flex items-center justify-center">
+            <Sparkles className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              Welcome back, {user?.name}!
+            </h1>
+            <p className={`text-sm ${isDarkMode ? 'text-white/60' : 'text-gray-600'}`}>
+              Admin • Platform Management
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={toggleTheme}
+            className={`p-2 rounded-lg ${
+              isDarkMode ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-100 hover:bg-gray-200'
+            } transition-colors`}
+          >
+            {isDarkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-gray-700" />}
+          </button>
+          
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className={`md:hidden p-2 rounded-lg ${
+              isDarkMode ? 'bg-white/10' : 'bg-gray-100'
+            }`}
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+
+          <Link to="/admin/profile" className="hidden md:block btn-primary px-6 py-2">
+            Profile
+          </Link>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <div className="relative z-10 p-6 max-w-7xl mx-auto">
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {getStatsForView().map((stat, index) => (
             <motion.div
               key={index}
-              className="glass-card glass-card-hover p-6 rounded-2xl"
-              whileHover={{ y: -5, scale: 1.02 }}
-              initial={{ y: 50, opacity: 0 }}
+              className="glass-card p-6 rounded-2xl"
+              initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.1 * index }}
+              transition={{ delay: 0.1 + index * 0.1 }}
             >
-              <div className="flex items-center justify-between mb-4">
-                <div className={`${stat.color}`}>
+              <div className="flex items-center justify-between mb-2">
+                <div className={
+                  stat.color.includes('violet') ? `${isDarkMode ? 'text-violet-400' : 'text-violet-600'}` :
+                  stat.color.includes('primary') || stat.color.includes('blue') ? `${isDarkMode ? 'text-blue-400' : 'text-blue-600'}` :
+                  stat.color.includes('mint') || stat.color.includes('green') ? `${isDarkMode ? 'text-green-400' : 'text-green-600'}` :
+                  `${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`
+                }>
                   {stat.icon}
                 </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-white">{stat.value}</div>
-                  <div className="text-sm text-mint-400">{stat.change}</div>
-                </div>
               </div>
-              <div className="text-sm text-white/60">{stat.label}</div>
+              <h3 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                {stat.value}
+              </h3>
+              <p className={`text-sm ${isDarkMode ? 'text-white/60' : 'text-gray-600'}`}>{stat.label}</p>
+              {stat.change && (
+                <p className={`text-xs mt-1 ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
+                  {stat.change}
+                </p>
+              )}
             </motion.div>
           ))}
-        </motion.div>
+        </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content Area */}
@@ -158,33 +201,51 @@ const AdminDashboard = () => {
             {viewMode === 'admin' && (
               <>
                 <div className="glass-card p-6 rounded-2xl mb-6">
-                  <h2 className="text-2xl font-bold text-white mb-6">Platform Analytics</h2>
+                  <h2 className={`text-2xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    Platform Analytics
+                  </h2>
                   
-                  <div className="h-64 bg-white/5 rounded-xl flex items-center justify-center">
+                  <div className={`h-64 rounded-xl flex items-center justify-center ${
+                    isDarkMode ? 'bg-white/5' : 'bg-gray-100'
+                  }`}>
                     <div className="text-center">
-                      <BarChart3 className="w-16 h-16 text-white/40 mx-auto mb-4" />
-                      <p className="text-white/60">Analytics chart will be rendered here</p>
+                      <BarChart3 className={`w-16 h-16 mx-auto mb-4 ${
+                        isDarkMode ? 'text-white/40' : 'text-gray-400'
+                      }`} />
+                      <p className={isDarkMode ? 'text-white/60' : 'text-gray-600'}>
+                        Analytics chart will be rendered here
+                      </p>
                     </div>
                   </div>
                 </div>
 
                 <div className="glass-card p-6 rounded-2xl">
-                  <h2 className="text-2xl font-bold text-white mb-6">Recent Activities</h2>
+                  <h2 className={`text-2xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    Recent Activities
+                  </h2>
                   
                   <div className="space-y-4">
                     {recentActivities.map((activity, index) => (
                       <motion.div
                         key={index}
-                        className="flex items-center justify-between p-4 bg-white/5 rounded-xl"
+                        className={`flex items-center justify-between p-4 rounded-xl ${
+                          isDarkMode ? 'bg-white/5' : 'bg-gray-50'
+                        }`}
                         initial={{ x: -50, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
                         transition={{ duration: 0.6, delay: 0.1 * index }}
                       >
                         <div>
-                          <p className="text-white font-medium">{activity.action}</p>
-                          <p className="text-white/60 text-sm">by {activity.user}</p>
+                          <p className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                            {activity.action}
+                          </p>
+                          <p className={`text-sm ${isDarkMode ? 'text-white/60' : 'text-gray-600'}`}>
+                            by {activity.user}
+                          </p>
                         </div>
-                        <div className="text-white/60 text-sm">{activity.time}</div>
+                        <div className={`text-sm ${isDarkMode ? 'text-white/60' : 'text-gray-600'}`}>
+                          {activity.time}
+                        </div>
                       </motion.div>
                     ))}
                   </div>

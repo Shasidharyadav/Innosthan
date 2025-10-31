@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Home } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { useAuthStore } from '../stores/authStore'
+import { useThemeStore } from '../stores/themeStore'
 
 interface BackButtonProps {
   to?: string // Optional custom destination
@@ -9,6 +11,25 @@ interface BackButtonProps {
 
 export const BackButton = ({ to, showHomeButton = true }: BackButtonProps) => {
   const navigate = useNavigate()
+  const { user } = useAuthStore()
+  const { isDarkMode } = useThemeStore()
+
+  const getDashboardPath = () => {
+    if (!user) return '/student/dashboard'
+    
+    switch (user.role) {
+      case 'student':
+        return '/student/dashboard'
+      case 'mentor':
+        return '/mentor/dashboard'
+      case 'admin':
+        return '/admin/dashboard'
+      case 'institution':
+        return '/institution/dashboard'
+      default:
+        return '/student/dashboard'
+    }
+  }
 
   const handleBack = () => {
     if (to) {
@@ -19,7 +40,7 @@ export const BackButton = ({ to, showHomeButton = true }: BackButtonProps) => {
   }
 
   const handleHome = () => {
-    navigate('/student/dashboard')
+    navigate(getDashboardPath())
   }
 
   return (
@@ -31,7 +52,11 @@ export const BackButton = ({ to, showHomeButton = true }: BackButtonProps) => {
     >
       <button
         onClick={handleBack}
-        className="group flex items-center space-x-2 px-4 py-2 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-white rounded-xl transition-all duration-300 shadow-sm hover:shadow-md border border-gray-200 dark:border-white/10"
+        className={`group flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md border ${
+          isDarkMode
+            ? 'bg-white/10 hover:bg-white/20 text-white border-white/10'
+            : 'bg-white hover:bg-gray-100 text-gray-700 border-gray-200'
+        }`}
       >
         <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-300" />
         <span className="font-medium">Back</span>

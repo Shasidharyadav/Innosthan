@@ -1,34 +1,89 @@
 import { motion } from 'framer-motion'
-import { useNavigate, Link } from 'react-router-dom'
-import { useState, useEffect } from 'react'
-import { useAuthStore } from '../../stores/authStore'
+import { useEffect, useState, useRef } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { useThemeStore } from '../../stores/themeStore'
+import { useAuthStore } from '../../stores/authStore'
+import { useSocket } from '../../contexts/SocketContext'
 import axios from 'axios'
-import {
-  Users,
+import { 
+  TrendingUp, 
+  Users, 
   Calendar,
   CheckCircle,
   Star,
+  ArrowRight,
+  Briefcase,
+  Sun,
+  Moon,
+  Menu,
+  X,
   MessageCircle,
-  Award,
-  TrendingUp,
-  Clock,
   BookOpen,
   Video,
-  Sun,
-  Moon
+  Clock,
+  Sparkles
 } from 'lucide-react'
+import toast from 'react-hot-toast'
+
+interface MentorAnalytics {
+  totalSessions: number
+  completedSessions: number
+  upcomingSessions: number
+  activeStudents: number
+  averageRating: string
+  totalReviews: number
+}
+
+interface PendingReview {
+  _id: string
+  studentId: {
+    _id: string
+    name: string
+    email: string
+  }
+  moduleId: {
+    _id: string
+    title: string
+    moduleNumber: number
+  }
+  submittedAt: string
+  title: string
+}
+
+interface UpcomingSession {
+  _id: string
+  student: {
+    _id: string
+    name: string
+    email: string
+  }
+  topic: string
+  scheduledAt: string
+  type: string
+  duration: number
+  status: string
+}
+
+interface StudentProgress {
+  _id: string
+  name: string
+  xp: number
+  level: number
+  completedModules: number
+}
 
 const MentorDashboard = () => {
-  const { user, token } = useAuthStore()
   const { isDarkMode, toggleTheme } = useThemeStore()
+  const { user } = useAuthStore()
+  const { socket, isConnected } = useSocket()
   const navigate = useNavigate()
-  const [stats, setStats] = useState({
-    activeMentees: 0,
-    sessionsThisMonth: 0,
-    assignmentsReviewed: 0,
-    averageRating: '0.0'
-  })
+  const [analytics, setAnalytics] = useState<MentorAnalytics | null>(null)
+  const [pendingReviews, setPendingReviews] = useState<PendingReview[]>([])
+  const [upcomingSessions, setUpcomingSessions] = useState<UpcomingSession[]>([])
+  const [studentProgress, setStudentProgress] = useState<StudentProgress[]>([])
+  const [loading, setLoading] = useState(true)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     if (isDarkMode) {
@@ -40,251 +95,373 @@ const MentorDashboard = () => {
 
   useEffect(() => {
     fetchDashboardData()
+    
+    // Set up polling for real-time updates every 30 seconds
+    intervalRef.current = setInterval(() => {
+      fetchDashboardData()
+    }, 30000)
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+      }
+    }
   }, [])
+
+  // Real-time updates via WebSocket
+  useEffect(() => {
+    if (!socket || !isConnected) return
+
+    // Listen for new assignment submissions
+    socket.on('assignment:submitted', (data: any) => {
+      toast.success(`New assignment submitted by ${data.studentName}`)
+      fetchDashboardData()
+    })
+
+    // Listen for new session requests
+    socket.on('session:created', (data: any) => {
+      toast.success(`New session scheduled: ${data.topic}`)
+      fetchDashboardData()
+    })
+
+    // Listen for session updates
+    socket.on('session:updated', () => {
+      fetchDashboardData()
+    })
+
+    // Listen for assignment reviews
+    socket.on('assignment:reviewed', () => {
+      fetchDashboardData()
+    })
+
+    return () => {
+      socket.off('assignment:submitted')
+      socket.off('session:created')
+      socket.off('session:updated')
+      socket.off('assignment:reviewed')
+    }
+  }, [socket, isConnected])
 
   const fetchDashboardData = async () => {
     try {
-      const [usersRes, sessionsRes] = await Promise.all([
-        axios.get('/api/users', {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { role: 'student' }
-        }),
-        axios.get('/api/sessions', {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+      const [analyticsRes, pendingRes, sessionsRes, studentsRes] = await Promise.all([
+        axios.get('/api/sessions/mentor/analytics').catch(() => ({ data: null })),
+        axios.get('/api/assignments', { params: { status: 'submitted', limit: 5 } }).catch(() => ({ data: { assignments: [] } })),
+        axios.get('/api/sessions', { params: { status: 'scheduled', limit: 5 } }).catch(() => ({ data: { sessions: [] } })),
+        axios.get('/api/sessions/mentor/students').catch(() => ({ data: { students: [] } }))
       ])
 
-      setStats({
-        activeMentees: usersRes.data.users?.length || 0,
-        sessionsThisMonth: sessionsRes.data.sessions?.length || 0,
-        assignmentsReviewed: 0,
-        averageRating: '5.0'
-      })
-    } catch (error) {
+      if (analyticsRes.data) setAnalytics(analyticsRes.data)
+      setPendingReviews(pendingRes.data.assignments || [])
+      
+      // Filter and sort upcoming sessions
+      const upcoming = (sessionsRes.data.sessions || []).filter((s: UpcomingSession) => {
+        const sessionDate = new Date(s.scheduledAt)
+        return sessionDate >= new Date() && ['scheduled', 'confirmed'].includes(s.status)
+      }).sort((a: UpcomingSession, b: UpcomingSession) => 
+        new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
+      )
+      setUpcomingSessions(upcoming.slice(0, 5))
+      
+      setStudentProgress(studentsRes.data.students || [])
+    } catch (error: any) {
       console.error('Fetch dashboard data error:', error)
+      if (!analytics) {
+        toast.error('Failed to load dashboard data')
+      }
+    } finally {
+      setLoading(false)
     }
   }
 
-  const statsData = [
-    { label: 'Active Mentees', value: stats.activeMentees, icon: <Users className="w-6 h-6" />, color: 'text-violet-400', change: 'Total students' },
-    { label: 'Sessions This Month', value: stats.sessionsThisMonth, icon: <Calendar className="w-6 h-6" />, color: 'text-primary-400', change: 'All sessions' },
-    { label: 'Assignments Reviewed', value: stats.assignmentsReviewed, icon: <CheckCircle className="w-6 h-6" />, color: 'text-mint-400', change: 'Pending review' },
-    { label: 'Average Rating', value: stats.averageRating, icon: <Star className="w-6 h-6" />, color: 'text-amber-400', change: 'From students' }
-  ]
-
-  const upcomingSessions = [
-    { 
-      id: 1,
-      mentee: 'Alex Kumar', 
-      time: 'Today, 2:00 PM', 
-      topic: 'Business Model Canvas Review', 
-      type: 'Video Call',
-      duration: '1 hour',
-      status: 'confirmed',
-      notes: 'Review BMC for SaaS startup'
+  const quickActions = [
+    {
+      title: 'My Students',
+      description: 'View and manage students',
+      icon: <Users className="w-6 h-6" />,
+      link: '/mentor/students',
+      color: 'from-violet-500 to-pink-500'
     },
-    { 
-      id: 2,
-      mentee: 'Sarah Chen', 
-      time: 'Tomorrow, 10:00 AM', 
-      topic: 'Pitch Deck Feedback', 
-      type: 'Chat Session',
-      duration: '45 minutes',
-      status: 'pending',
-      notes: 'First draft review'
+    {
+      title: 'Sessions',
+      description: 'Schedule and manage sessions',
+      icon: <Calendar className="w-6 h-6" />,
+      link: '/mentor/sessions',
+      color: 'from-blue-500 to-cyan-500'
     },
-    { 
-      id: 3,
-      mentee: 'Raj Patel', 
-      time: 'Friday, 3:00 PM', 
-      topic: 'Market Validation Strategy', 
-      type: 'Video Call',
-      duration: '1 hour',
-      status: 'confirmed',
-      notes: 'Customer discovery approach'
+    {
+      title: 'Courses',
+      description: 'Create and manage courses',
+      icon: <BookOpen className="w-6 h-6" />,
+      link: '/mentor/courses',
+      color: 'from-green-500 to-emerald-500'
+    },
+    {
+      title: 'Messages',
+      description: 'Chat with students',
+      icon: <MessageCircle className="w-6 h-6" />,
+      link: '/student/messages',
+      color: 'from-violet-500 to-purple-500'
+    },
+    {
+      title: 'Profile',
+      description: 'View and edit profile',
+      icon: <Briefcase className="w-6 h-6" />,
+      link: '/mentor/profile',
+      color: 'from-amber-500 to-orange-500'
     }
   ]
 
-  const pendingReviews = [
-    { 
-      mentee: 'Maria Garcia', 
-      assignment: 'Module 3: Business Model', 
-      submitted: '2 hours ago', 
-      priority: 'high',
-      module: 3,
-      deadline: 'Today'
-    },
-    { 
-      mentee: 'John Doe', 
-      assignment: 'Module 2: Ideation', 
-      submitted: '1 day ago', 
-      priority: 'medium',
-      module: 2,
-      deadline: 'Tomorrow'
-    },
-    { 
-      mentee: 'Lisa Wang', 
-      assignment: 'Module 4: MVP Development', 
-      submitted: '2 days ago', 
-      priority: 'low',
-      module: 4,
-      deadline: 'In 2 days'
-    }
-  ]
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diff = date.getTime() - now.getTime()
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+    
+    if (days === 0) return 'Today'
+    if (days === 1) return 'Tomorrow'
+    if (days === -1) return 'Yesterday'
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  }
 
-  const recentActivities = [
-    {
-      action: 'Reviewed assignment',
-      mentee: 'Alex Kumar',
-      time: '2 hours ago',
-      type: 'review',
-      icon: <CheckCircle className="w-4 h-4 text-mint-400" />
-    },
-    {
-      action: 'Completed session',
-      mentee: 'Sarah Chen',
-      time: '1 day ago',
-      type: 'session',
-      icon: <Video className="w-4 h-4 text-violet-400" />
-    },
-    {
-      action: 'Awarded badge',
-      mentee: 'Raj Patel',
-      time: '2 days ago',
-      type: 'badge',
-      icon: <Award className="w-4 h-4 text-amber-400" />
-    },
-    {
-      action: 'Sent feedback',
-      mentee: 'Maria Garcia',
-      time: '3 days ago',
-      type: 'feedback',
-      icon: <MessageCircle className="w-4 h-4 text-primary-400" />
-    }
-  ]
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+  }
 
-  const menteeProgress = [
-    { name: 'Alex Kumar', progress: 75, modules: 6, xp: 850, trend: 'up' },
-    { name: 'Sarah Chen', progress: 60, modules: 5, xp: 720, trend: 'up' },
-    { name: 'Raj Patel', progress: 45, modules: 4, xp: 580, trend: 'stable' },
-    { name: 'Maria Garcia', progress: 85, modules: 7, xp: 950, trend: 'up' }
-  ]
+  const getTimeAgo = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diff = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
+    
+    if (diff < 60) return `${diff} minutes ago`
+    if (diff < 1440) return `${Math.floor(diff / 60)} hours ago`
+    return `${Math.floor(diff / 1440)} days ago`
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
+        <div className="animate-spin w-12 h-12 border-4 border-violet-600 border-t-transparent rounded-full" />
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <motion.div
-            initial={{ y: -50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-              Welcome back, {user?.name || 'Mentor'}! 🎓
+    <div className="min-h-screen bg-white dark:bg-black transition-colors duration-500">
+      {/* Background */}
+      <div className="fixed inset-0 z-0">
+        {!isDarkMode ? (
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-white to-pink-50" />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-black" />
+        )}
+      </div>
+
+      {/* Navigation */}
+      <nav className={`relative z-10 flex items-center justify-between p-6 backdrop-blur-md ${
+        isDarkMode ? 'bg-black/50' : 'bg-white/80'
+      } border-b ${isDarkMode ? 'border-white/10' : 'border-gray-200'}`}>
+        <div className="flex items-center space-x-4">
+          <div className="w-10 h-10 bg-gradient-to-r from-violet-500 to-pink-500 rounded-xl flex items-center justify-center">
+            <Sparkles className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              Welcome back, {user?.name}!
             </h1>
-            <p className="text-gray-600 dark:text-white/60 text-lg">
-              Guide and inspire the next generation of entrepreneurs
+            <p className={`text-sm ${isDarkMode ? 'text-white/60' : 'text-gray-600'}`}>
+              Mentor • {analytics?.activeStudents || 0} Active Students
             </p>
-          </motion.div>
-          
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-4">
           <button
             onClick={toggleTheme}
-            className="p-3 rounded-xl bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 transition-colors shadow-md"
+            className={`p-2 rounded-lg ${
+              isDarkMode ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-100 hover:bg-gray-200'
+            } transition-colors`}
           >
-            {isDarkMode ? (
-              <Sun className="w-5 h-5 text-yellow-400" />
-            ) : (
-              <Moon className="w-5 h-5 text-gray-700" />
-            )}
+            {isDarkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-gray-700" />}
           </button>
+          
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className={`md:hidden p-2 rounded-lg ${
+              isDarkMode ? 'bg-white/10' : 'bg-gray-100'
+            }`}
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+
+          <Link to="/mentor/profile" className="hidden md:block btn-primary px-6 py-2">
+            Profile
+          </Link>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <div className="relative z-10 p-6 max-w-7xl mx-auto">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <motion.div
+            className="glass-card p-6 rounded-2xl"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.1 }}
+          >
+            <div className={`flex items-center justify-between mb-2`}>
+              <Users className={`w-8 h-8 ${isDarkMode ? 'text-violet-400' : 'text-violet-600'}`} />
+            </div>
+            <h3 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              {analytics?.activeStudents || 0}
+            </h3>
+            <p className={`text-sm ${isDarkMode ? 'text-white/60' : 'text-gray-600'}`}>Active Students</p>
+          </motion.div>
+
+          <motion.div
+            className="glass-card p-6 rounded-2xl"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            <div className={`flex items-center justify-between mb-2`}>
+              <Calendar className={`w-8 h-8 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`} />
+            </div>
+            <h3 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              {analytics?.upcomingSessions || 0}
+            </h3>
+            <p className={`text-sm ${isDarkMode ? 'text-white/60' : 'text-gray-600'}`}>Upcoming Sessions</p>
+          </motion.div>
+
+          <motion.div
+            className="glass-card p-6 rounded-2xl"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            <div className={`flex items-center justify-between mb-2`}>
+              <CheckCircle className={`w-8 h-8 ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`} />
+            </div>
+            <h3 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              {pendingReviews.length}
+            </h3>
+            <p className={`text-sm ${isDarkMode ? 'text-white/60' : 'text-gray-600'}`}>Pending Reviews</p>
+          </motion.div>
+
+          <motion.div
+            className="glass-card p-6 rounded-2xl"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
+            <div className={`flex items-center justify-between mb-2`}>
+              <Star className={`w-8 h-8 ${isDarkMode ? 'text-green-400' : 'text-green-600'}`} />
+            </div>
+            <h3 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              {analytics?.averageRating || '0.0'}
+            </h3>
+            <p className={`text-sm ${isDarkMode ? 'text-white/60' : 'text-gray-600'}`}>Average Rating</p>
+          </motion.div>
         </div>
 
         {/* Quick Actions */}
-        <motion.div
-          className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
-        >
-          <Link to="/mentor/courses" className="glass-card p-6 rounded-2xl hover:scale-105 transition-transform cursor-pointer">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-violet-500 to-pink-500 rounded-xl flex items-center justify-center">
-                <BookOpen className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <div className="text-lg font-semibold text-gray-900 dark:text-white">My Courses</div>
-                <div className="text-sm text-gray-600 dark:text-white/60">Create & manage</div>
-              </div>
-            </div>
-          </Link>
+        <div className="mb-8">
+          <h2 className={`text-2xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+            Quick Actions
+          </h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {quickActions.map((action, index) => (
+              <Link key={index} to={action.link}>
+                <motion.div
+                  className="glass-card glass-card-hover p-6 rounded-2xl h-full"
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.5 + index * 0.1 }}
+                  whileHover={{ y: -5 }}
+                >
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${action.color} flex items-center justify-center text-white mb-4 shadow-lg`}>
+                    {action.icon}
+                  </div>
+                  <h3 className={`font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {action.title}
+                  </h3>
+                  <p className={`text-sm ${isDarkMode ? 'text-white/60' : 'text-gray-600'}`}>
+                    {action.description}
+                  </p>
+                </motion.div>
+              </Link>
+            ))}
+          </div>
+        </div>
 
-          <Link to="/mentor/students" className="glass-card p-6 rounded-2xl hover:scale-105 transition-transform cursor-pointer">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-mint-500 to-teal-500 rounded-xl flex items-center justify-center">
-                <Users className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <div className="text-lg font-semibold text-gray-900 dark:text-white">My Students</div>
-                <div className="text-sm text-gray-600 dark:text-white/60">Guide & track</div>
-              </div>
-            </div>
-          </Link>
-
-          <Link to="/mentor/sessions" className="glass-card p-6 rounded-2xl hover:scale-105 transition-transform cursor-pointer">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <div className="text-lg font-semibold text-gray-900 dark:text-white">Sessions</div>
-                <div className="text-sm text-gray-600 dark:text-white/60">Schedule meetings</div>
-              </div>
-            </div>
-          </Link>
-
-          <Link to="/mentor/profile" className="glass-card p-6 rounded-2xl hover:scale-105 transition-transform cursor-pointer">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl flex items-center justify-center">
-                <Star className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <div className="text-lg font-semibold text-gray-900 dark:text-white">Profile</div>
-                <div className="text-sm text-gray-600 dark:text-white/60">View & edit</div>
-              </div>
-            </div>
-          </Link>
-        </motion.div>
-
-        {/* Stats Grid */}
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          {statsData.map((stat, index) => (
-            <motion.div
-              key={index}
-              className="glass-card glass-card-hover p-6 rounded-2xl"
-              whileHover={{ y: -5, scale: 1.02 }}
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.1 * index }}
+        {/* Upcoming Sessions */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              Upcoming Sessions
+            </h2>
+            <Link 
+              to="/mentor/sessions"
+              className={`text-sm flex items-center space-x-1 ${
+                isDarkMode ? 'text-violet-400 hover:text-violet-300' : 'text-violet-600 hover:text-violet-700'
+              }`}
             >
-              <div className="flex items-center justify-between mb-4">
-                <div className={`${stat.color}`}>
-                  {stat.icon}
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-white">{stat.value}</div>
-                  <div className="text-sm text-mint-400">{stat.change}</div>
-                </div>
+              <span>View All</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            {upcomingSessions.length > 0 ? (
+              upcomingSessions.map((session, index) => (
+                <motion.div
+                  key={session._id}
+                  className="glass-card glass-card-hover p-6 rounded-2xl"
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.9 + index * 0.1 }}
+                  whileHover={{ y: -5 }}
+                  onClick={() => navigate(`/mentor/sessions`)}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-r from-violet-500 to-pink-500 flex items-center justify-center text-white`}>
+                      {session.type === 'video' ? <Video className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
+                    </div>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      session.status === 'confirmed' 
+                        ? isDarkMode ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-700'
+                        : isDarkMode ? 'bg-amber-500/20 text-amber-400' : 'bg-amber-100 text-amber-700'
+                    }`}>
+                      {session.status}
+                    </span>
+                  </div>
+                  <h3 className={`font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {session.student?.name || 'Student'}
+                  </h3>
+                  <p className={`text-sm ${isDarkMode ? 'text-white/60' : 'text-gray-600'} mb-4`}>
+                    {session.topic}
+                  </p>
+                  <div className="flex items-center space-x-4 text-sm">
+                    <div className={`flex items-center space-x-1 ${isDarkMode ? 'text-white/60' : 'text-gray-600'}`}>
+                      <Clock className="w-4 h-4" />
+                      <span>{formatDate(session.scheduledAt)}</span>
+                    </div>
+                    <span className={isDarkMode ? 'text-white/60' : 'text-gray-600'}>
+                      {formatTime(session.scheduledAt)}
+                    </span>
+                  </div>
+                </motion.div>
+              ))
+            ) : (
+              <div className={`col-span-2 glass-card p-6 rounded-2xl text-center ${isDarkMode ? 'text-white/60' : 'text-gray-600'}`}>
+                <Calendar className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p>No upcoming sessions scheduled</p>
               </div>
-              <div className="text-sm text-white/60">{stat.label}</div>
-            </motion.div>
-          ))}
-        </motion.div>
+            )}
+          </div>
+        </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
@@ -294,150 +471,141 @@ const MentorDashboard = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            {/* Upcoming Sessions */}
-            <div className="glass-card p-6 rounded-2xl">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-white">Upcoming Sessions</h2>
-                <button 
-                  className="btn-secondary text-sm"
-                  onClick={() => navigate('/mentor/sessions')}
-                >
-                  View All
-                </button>
-              </div>
-              
-              <div className="space-y-4">
-                {upcomingSessions.map((session, index) => (
-                  <motion.div
-                    key={index}
-                    className="flex items-center justify-between p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-all cursor-pointer"
-                    initial={{ x: -50, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ duration: 0.6, delay: 0.1 * index }}
-                  >
-                    <div className="flex items-center space-x-4 flex-1">
-                      <div className="w-12 h-12 bg-gradient-to-r from-violet-500 to-pink-500 rounded-xl flex items-center justify-center">
-                        {session.type === 'Video Call' ? <Video className="w-6 h-6 text-white" /> : <MessageCircle className="w-6 h-6 text-white" />}
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-white font-semibold">{session.mentee}</h3>
-                        <p className="text-white/60 text-sm">{session.topic}</p>
-                        <div className="flex items-center space-x-4 mt-1">
-                          <div className="flex items-center space-x-1 text-white/50 text-xs">
-                            <Clock className="w-3 h-3" />
-                            <span>{session.duration}</span>
-                          </div>
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                            session.status === 'confirmed' 
-                              ? 'bg-mint-500/20 text-mint-400 border border-mint-500/30'
-                              : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                          }`}>
-                            {session.status}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-white/80 text-sm font-medium">{session.time}</p>
-                      <p className="text-violet-400 text-xs">{session.type}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
 
             {/* Pending Reviews */}
             <div className="glass-card p-6 rounded-2xl">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-white">Pending Reviews</h2>
-                <span className="px-3 py-1 rounded-full text-sm font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Pending Reviews
+                </h2>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  isDarkMode ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-amber-100 text-amber-700'
+                }`}>
                   {pendingReviews.length} pending
                 </span>
               </div>
               
               <div className="space-y-4">
-                {pendingReviews.map((review, index) => (
-                  <motion.div
-                    key={index}
-                    className="flex items-center justify-between p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-all"
-                    initial={{ x: -50, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ duration: 0.6, delay: 0.1 * index }}
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <div className="w-8 h-8 bg-gradient-to-r from-violet-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                          {review.mentee.charAt(0)}
+                {pendingReviews.length > 0 ? (
+                  pendingReviews.map((review, index) => (
+                    <motion.div
+                      key={review._id}
+                      className={`glass-card glass-card-hover p-4 rounded-xl ${
+                        isDarkMode ? 'bg-white/5' : 'bg-gray-50'
+                      } transition-all cursor-pointer`}
+                      initial={{ x: -50, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      transition={{ duration: 0.6, delay: 0.1 * index }}
+                      whileHover={{ y: -2 }}
+                      onClick={() => navigate(`/mentor/courses?assignment=${review._id}`)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <div className="w-10 h-10 bg-gradient-to-r from-violet-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                              {review.studentId?.name?.charAt(0) || 'S'}
+                            </div>
+                            <div>
+                              <h3 className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                {review.studentId?.name || 'Student'}
+                              </h3>
+                              <p className={`text-sm ${isDarkMode ? 'text-white/60' : 'text-gray-600'}`}>
+                                {review.moduleId?.title || review.title || 'Assignment'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-4 ml-12 mt-2">
+                            <p className={`text-xs ${isDarkMode ? 'text-white/40' : 'text-gray-500'}`}>
+                              Submitted {getTimeAgo(review.submittedAt)}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="text-white font-semibold">{review.mentee}</h3>
-                          <p className="text-white/60 text-sm">{review.assignment}</p>
-                        </div>
+                        <button 
+                          className="btn-primary text-sm px-4 py-2 ml-4"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            navigate(`/mentor/courses?assignment=${review._id}`)
+                          }}
+                        >
+                          Review
+                        </button>
                       </div>
-                      <div className="flex items-center space-x-4 ml-11">
-                        <p className="text-white/40 text-xs">Submitted {review.submitted}</p>
-                        <p className="text-white/40 text-xs">Due: {review.deadline}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        review.priority === 'high' 
-                          ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                          : review.priority === 'medium'
-                          ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                          : 'bg-green-500/20 text-green-400 border border-green-500/30'
-                      }`}>
-                        {review.priority}
-                      </span>
-                      <button className="btn-primary text-sm px-4 py-2">
-                        Review
-                      </button>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  ))
+                ) : (
+                  <div className={`text-center py-8 ${isDarkMode ? 'text-white/60' : 'text-gray-600'}`}>
+                    <CheckCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p>No pending reviews</p>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Mentee Progress */}
+            {/* Student Progress */}
             <div className="glass-card p-6 rounded-2xl">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-white">Mentee Progress</h2>
-                <button 
-                  className="btn-secondary text-sm"
-                  onClick={() => navigate('/mentor/students')}
+                <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Student Progress
+                </h2>
+                <Link 
+                  to="/mentor/students"
+                  className={`text-sm flex items-center space-x-1 ${
+                    isDarkMode ? 'text-violet-400 hover:text-violet-300' : 'text-violet-600 hover:text-violet-700'
+                  }`}
                 >
-                  View All Students
-                </button>
+                  <span>View All</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
               </div>
               
               <div className="space-y-4">
-                {menteeProgress.map((mentee, index) => (
-                  <div key={index} className="p-4 bg-white/5 rounded-xl">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-violet-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
-                          {mentee.name.charAt(0)}
-                        </div>
-                        <div>
-                          <h3 className="text-white font-semibold">{mentee.name}</h3>
-                          <p className="text-white/60 text-sm">{mentee.modules} modules • {mentee.xp} XP</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <TrendingUp className={`w-4 h-4 ${
-                          mentee.trend === 'up' ? 'text-mint-400' : 'text-white/40'
-                        }`} />
-                        <span className="text-white font-semibold">{mentee.progress}%</span>
-                      </div>
-                    </div>
-                    <div className="w-full bg-white/10 rounded-full h-2">
+                {studentProgress.length > 0 ? (
+                  studentProgress.slice(0, 5).map((student) => {
+                    const progress = student.completedModules > 0 ? Math.min(100, (student.completedModules / 8) * 100) : 0
+                    return (
                       <div 
-                        className="bg-gradient-to-r from-violet-500 to-pink-500 h-2 rounded-full transition-all duration-500"
-                        style={{ width: `${mentee.progress}%` }}
-                      />
-                    </div>
+                        key={student._id} 
+                        className={`glass-card glass-card-hover p-4 rounded-xl cursor-pointer ${
+                          isDarkMode ? 'bg-white/5' : 'bg-gray-50'
+                        }`}
+                        onClick={() => navigate(`/mentor/students?student=${student._id}`)}
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-gradient-to-r from-violet-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
+                              {student.name?.charAt(0) || 'S'}
+                            </div>
+                            <div>
+                              <h3 className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                {student.name}
+                              </h3>
+                              <p className={`text-sm ${isDarkMode ? 'text-white/60' : 'text-gray-600'}`}>
+                                Level {student.level} • {student.xp} XP
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <TrendingUp className={`w-4 h-4 ${isDarkMode ? 'text-green-400' : 'text-green-600'}`} />
+                            <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                              {Math.round(progress)}%
+                            </span>
+                          </div>
+                        </div>
+                        <div className={`w-full ${isDarkMode ? 'bg-white/10' : 'bg-gray-200'} rounded-full h-2`}>
+                          <div 
+                            className="bg-gradient-to-r from-violet-500 to-pink-500 h-2 rounded-full transition-all duration-500"
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
+                      </div>
+                    )
+                  })
+                ) : (
+                  <div className={`text-center py-8 ${isDarkMode ? 'text-white/60' : 'text-gray-600'}`}>
+                    <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p>No students yet</p>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </motion.div>
@@ -449,91 +617,53 @@ const MentorDashboard = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.6 }}
           >
-            {/* Quick Actions */}
+            {/* Quick Stats */}
             <div className="glass-card p-6 rounded-2xl">
-              <h2 className="text-2xl font-bold text-white mb-6">Quick Actions</h2>
+              <h2 className={`text-2xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                This Week
+              </h2>
               
               <div className="space-y-4">
-                <button 
-                  className="w-full btn-primary flex items-center space-x-3"
-                  onClick={() => navigate('/mentor/sessions')}
-                >
-                  <Calendar className="w-5 h-5" />
-                  <span>Schedule Session</span>
-                </button>
-                
-                <button className="w-full btn-secondary flex items-center space-x-3">
-                  <BookOpen className="w-5 h-5" />
-                  <span>Review Assignments</span>
-                </button>
-                
-                <button className="w-full btn-secondary flex items-center space-x-3">
-                  <MessageCircle className="w-5 h-5" />
-                  <span>Message Students</span>
-                </button>
-                
-                <button className="w-full btn-secondary flex items-center space-x-3">
-                  <Award className="w-5 h-5" />
-                  <span>Award Badges</span>
-                </button>
-
-                <button 
-                  className="w-full btn-secondary flex items-center space-x-3"
-                  onClick={() => navigate('/mentor/students')}
-                >
-                  <Users className="w-5 h-5" />
-                  <span>Manage Students</span>
-                </button>
+                <div className="flex items-center justify-between">
+                  <span className={isDarkMode ? 'text-white/80' : 'text-gray-700'}>Sessions Conducted</span>
+                  <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {analytics?.completedSessions || 0}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className={isDarkMode ? 'text-white/80' : 'text-gray-700'}>Assignments Reviewed</span>
+                  <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {analytics?.totalReviews || 0}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className={isDarkMode ? 'text-white/80' : 'text-gray-700'}>Total Sessions</span>
+                  <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {analytics?.totalSessions || 0}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className={isDarkMode ? 'text-white/80' : 'text-gray-700'}>Active Students</span>
+                  <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {analytics?.activeStudents || 0}
+                  </span>
+                </div>
               </div>
             </div>
 
-            {/* Recent Activity */}
-            <div className="glass-card p-6 rounded-2xl">
-              <h2 className="text-2xl font-bold text-white mb-6">Recent Activity</h2>
-              
-              <div className="space-y-4">
-                {recentActivities.map((activity, index) => (
-                  <div key={index} className="flex items-center space-x-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      activity.type === 'review' ? 'bg-mint-500/20' :
-                      activity.type === 'session' ? 'bg-violet-500/20' :
-                      activity.type === 'badge' ? 'bg-amber-500/20' :
-                      'bg-primary-500/20'
-                    }`}>
-                      {activity.icon}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-white text-sm font-medium">{activity.action}</p>
-                      <p className="text-white/60 text-xs">{activity.mentee}</p>
-                      <p className="text-white/40 text-xs">{activity.time}</p>
-                    </div>
-                  </div>
-                ))}
+            {/* Connection Status */}
+            <div className={`glass-card p-4 rounded-2xl ${
+              isConnected ? (isDarkMode ? 'bg-green-500/10 border border-green-500/20' : 'bg-green-50 border border-green-200') : (isDarkMode ? 'bg-red-500/10 border border-red-500/20' : 'bg-red-50 border border-red-200')
+            }`}>
+              <div className="flex items-center space-x-2">
+                <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
+                <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {isConnected ? 'Connected' : 'Disconnected'}
+                </span>
               </div>
-            </div>
-
-            {/* This Week's Summary */}
-            <div className="glass-card p-6 rounded-2xl">
-              <h2 className="text-2xl font-bold text-white mb-6">This Week</h2>
-              
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-white/80">Sessions Conducted</span>
-                  <span className="text-white font-semibold">6</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-white/80">Assignments Reviewed</span>
-                  <span className="text-white font-semibold">12</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-white/80">Badges Awarded</span>
-                  <span className="text-white font-semibold">8</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-white/80">Hours Mentored</span>
-                  <span className="text-white font-semibold">18h</span>
-                </div>
-              </div>
+              <p className={`text-xs mt-1 ${isDarkMode ? 'text-white/60' : 'text-gray-600'}`}>
+                {isConnected ? 'Real-time updates active' : 'Reconnecting...'}
+              </p>
             </div>
           </motion.div>
         </div>

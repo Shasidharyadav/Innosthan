@@ -698,14 +698,38 @@ const CommunityHub = () => {
                   <select
                     value={newPost.category}
                     onChange={(e) => setNewPost({ ...newPost, category: e.target.value })}
-                    className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:border-violet-500 transition-all"
+                    className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:border-violet-500 transition-all appearance-none cursor-pointer ${
+                      isDarkMode 
+                        ? 'bg-white/10 border-white/20 text-white' 
+                        : 'bg-gray-50 border-gray-200 text-gray-900'
+                    }`}
+                    style={{
+                      backgroundImage: isDarkMode 
+                        ? "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E\")"
+                        : "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23374151' d='M6 9L1 4h10z'/%3E%3C/svg%3E\")",
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'right 1rem center',
+                      paddingRight: '2.5rem'
+                    }}
                   >
-                    <option value="general">General</option>
-                    <option value="learning">Learning</option>
-                    <option value="mentor-tip">Mentor Tip</option>
-                    <option value="success">Success Story</option>
-                    <option value="collaboration">Collaboration</option>
-                    <option value="help">Help Needed</option>
+                    <option value="general" style={isDarkMode ? { backgroundColor: '#111827', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#111827' }}>
+                      General
+                    </option>
+                    <option value="learning" style={isDarkMode ? { backgroundColor: '#111827', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#111827' }}>
+                      Learning
+                    </option>
+                    <option value="mentor-tip" style={isDarkMode ? { backgroundColor: '#111827', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#111827' }}>
+                      Mentor Tip
+                    </option>
+                    <option value="success" style={isDarkMode ? { backgroundColor: '#111827', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#111827' }}>
+                      Success Story
+                    </option>
+                    <option value="collaboration" style={isDarkMode ? { backgroundColor: '#111827', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#111827' }}>
+                      Collaboration
+                    </option>
+                    <option value="help" style={isDarkMode ? { backgroundColor: '#111827', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#111827' }}>
+                      Help Needed
+                    </option>
                   </select>
                 </div>
 

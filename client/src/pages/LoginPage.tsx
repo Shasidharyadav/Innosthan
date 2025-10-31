@@ -29,16 +29,16 @@ const LoginPage = () => {
       const { user } = useAuthStore.getState()
       switch (user?.role) {
         case 'admin':
-          navigate('/admin')
+          navigate('/admin/dashboard')
           break
         case 'mentor':
-          navigate('/mentor')
+          navigate('/mentor/dashboard')
           break
         case 'institution':
-          navigate('/institution')
+          navigate('/institution/dashboard')
           break
         default:
-          navigate('/dashboard')
+          navigate('/student/dashboard')
       }
     }
   }, [isAuthenticated, navigate])
@@ -52,16 +52,16 @@ const LoginPage = () => {
         const { user } = useAuthStore.getState()
         switch (user?.role) {
           case 'admin':
-            navigate('/admin')
+            navigate('/admin/dashboard')
             break
           case 'mentor':
-            navigate('/mentor')
+            navigate('/mentor/dashboard')
             break
           case 'institution':
-            navigate('/institution')
+            navigate('/institution/dashboard')
             break
           default:
-            navigate('/dashboard')
+            navigate('/student/dashboard')
         }
       }, 100)
     } catch (error: any) {

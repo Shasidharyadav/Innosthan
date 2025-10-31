@@ -225,28 +225,56 @@ const StudentResourcesPage = () => {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className={`px-4 py-2 rounded-xl ${
+              className={`px-4 py-2 rounded-xl appearance-none cursor-pointer ${
                 isDarkMode 
                   ? 'bg-white/10 border-white/20 text-white' 
                   : 'bg-gray-100 border-gray-200 text-gray-900'
-              } border focus:outline-none focus:border-violet-500 cursor-pointer`}
+              } border focus:outline-none focus:border-violet-500`}
+              style={{
+                backgroundImage: isDarkMode 
+                  ? "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E\")"
+                  : "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23374151' d='M6 9L1 4h10z'/%3E%3C/svg%3E\")",
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 0.75rem center',
+                paddingRight: '2.25rem'
+              }}
             >
               {categories.map((cat) => (
-                <option key={cat.value} value={cat.value}>{cat.label}</option>
+                <option 
+                  key={cat.value} 
+                  value={cat.value}
+                  style={isDarkMode ? { backgroundColor: '#111827', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#111827' }}
+                >
+                  {cat.label}
+                </option>
               ))}
             </select>
 
             <select
               value={selectedLevel}
               onChange={(e) => setSelectedLevel(e.target.value)}
-              className={`px-4 py-2 rounded-xl ${
+              className={`px-4 py-2 rounded-xl appearance-none cursor-pointer ${
                 isDarkMode 
                   ? 'bg-white/10 border-white/20 text-white' 
                   : 'bg-gray-100 border-gray-200 text-gray-900'
-              } border focus:outline-none focus:border-violet-500 cursor-pointer`}
+              } border focus:outline-none focus:border-violet-500`}
+              style={{
+                backgroundImage: isDarkMode 
+                  ? "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E\")"
+                  : "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23374151' d='M6 9L1 4h10z'/%3E%3C/svg%3E\")",
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 0.75rem center',
+                paddingRight: '2.25rem'
+              }}
             >
               {levels.map((level) => (
-                <option key={level.value} value={level.value}>{level.label}</option>
+                <option 
+                  key={level.value} 
+                  value={level.value}
+                  style={isDarkMode ? { backgroundColor: '#111827', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#111827' }}
+                >
+                  {level.label}
+                </option>
               ))}
             </select>
           </div>

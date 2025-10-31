@@ -5,6 +5,7 @@ import axios from 'axios'
 import toast from 'react-hot-toast'
 import { useAuthStore } from '../../stores/authStore'
 import { useThemeStore } from '../../stores/themeStore'
+import BackButton from '../../components/BackButton'
 
 interface Module {
   _id?: string
@@ -173,8 +174,20 @@ const AdminModules = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-white dark:bg-black transition-colors duration-500">
+      {/* Background */}
+      <div className="fixed inset-0 z-0">
+        {!isDarkMode ? (
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-white to-pink-50" />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-black" />
+        )}
+      </div>
+
+      {/* Main Content */}
+      <div className="relative z-10 p-6 max-w-7xl mx-auto">
+        <BackButton />
+        
         <motion.div
           className="flex items-center justify-between mb-8"
           initial={{ y: -50, opacity: 0 }}
@@ -182,8 +195,12 @@ const AdminModules = () => {
           transition={{ duration: 0.6 }}
         >
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">Module Management 📚</h1>
-            <p className="text-gray-600 dark:text-white/60 text-lg">Create and manage learning modules for students</p>
+            <h1 className={`text-4xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              Module Management
+            </h1>
+            <p className={`text-lg ${isDarkMode ? 'text-white/60' : 'text-gray-600'}`}>
+              Create and manage learning modules for students
+            </p>
           </div>
           
           <button
@@ -401,13 +418,33 @@ const AdminModules = () => {
                     <select
                       value={formData.difficulty}
                       onChange={(e) => setFormData({ ...formData, difficulty: e.target.value as any })}
-                      className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:border-violet-500 transition-colors"
+                      className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:border-violet-500 transition-colors appearance-none cursor-pointer ${
+                        isDarkMode 
+                          ? 'bg-white/10 border-white/20 text-white' 
+                          : 'bg-gray-50 border-gray-200 text-gray-900'
+                      }`}
+                      style={{
+                        backgroundImage: isDarkMode 
+                          ? "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E\")"
+                          : "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23374151' d='M6 9L1 4h10z'/%3E%3C/svg%3E\")",
+                        backgroundRepeat: 'no-repeat',
+                        backgroundPosition: 'right 1rem center',
+                        paddingRight: '2.5rem'
+                      }}
                       required
                     >
-                      <option value="Beginner">Beginner</option>
-                      <option value="Intermediate">Intermediate</option>
-                      <option value="Advanced">Advanced</option>
-                      <option value="Expert">Expert</option>
+                      <option value="Beginner" style={isDarkMode ? { backgroundColor: '#111827', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#111827' }}>
+                        Beginner
+                      </option>
+                      <option value="Intermediate" style={isDarkMode ? { backgroundColor: '#111827', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#111827' }}>
+                        Intermediate
+                      </option>
+                      <option value="Advanced" style={isDarkMode ? { backgroundColor: '#111827', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#111827' }}>
+                        Advanced
+                      </option>
+                      <option value="Expert" style={isDarkMode ? { backgroundColor: '#111827', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#111827' }}>
+                        Expert
+                      </option>
                     </select>
                   </div>
                 </div>

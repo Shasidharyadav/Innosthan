@@ -408,13 +408,33 @@ const MentorCourses = () => {
                     <select
                       value={formData.difficulty}
                       onChange={(e) => setFormData({ ...formData, difficulty: e.target.value as any })}
-                      className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:border-violet-500 transition-colors"
+                      className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:border-violet-500 transition-colors appearance-none cursor-pointer ${
+                        isDarkMode 
+                          ? 'bg-white/10 border-white/20 text-white' 
+                          : 'bg-gray-50 border-gray-200 text-gray-900'
+                      }`}
+                      style={{
+                        backgroundImage: isDarkMode 
+                          ? "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E\")"
+                          : "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23374151' d='M6 9L1 4h10z'/%3E%3C/svg%3E\")",
+                        backgroundRepeat: 'no-repeat',
+                        backgroundPosition: 'right 1rem center',
+                        paddingRight: '2.5rem'
+                      }}
                       required
                     >
-                      <option value="Beginner">Beginner</option>
-                      <option value="Intermediate">Intermediate</option>
-                      <option value="Advanced">Advanced</option>
-                      <option value="Expert">Expert</option>
+                      <option value="Beginner" style={isDarkMode ? { backgroundColor: '#111827', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#111827' }}>
+                        Beginner
+                      </option>
+                      <option value="Intermediate" style={isDarkMode ? { backgroundColor: '#111827', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#111827' }}>
+                        Intermediate
+                      </option>
+                      <option value="Advanced" style={isDarkMode ? { backgroundColor: '#111827', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#111827' }}>
+                        Advanced
+                      </option>
+                      <option value="Expert" style={isDarkMode ? { backgroundColor: '#111827', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#111827' }}>
+                        Expert
+                      </option>
                     </select>
                   </div>
                 </div>

@@ -32,7 +32,20 @@ const RegisterPage = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/dashboard')
+      const { user } = useAuthStore.getState()
+      switch (user?.role) {
+        case 'admin':
+          navigate('/admin/dashboard')
+          break
+        case 'mentor':
+          navigate('/mentor/dashboard')
+          break
+        case 'institution':
+          navigate('/institution/dashboard')
+          break
+        default:
+          navigate('/student/dashboard')
+      }
     }
   }, [isAuthenticated, navigate])
 
@@ -58,7 +71,20 @@ const RegisterPage = () => {
       })
       toast.success('Account created successfully!')
       setTimeout(() => {
-        navigate('/dashboard')
+        const { user } = useAuthStore.getState()
+        switch (user?.role) {
+          case 'admin':
+            navigate('/admin/dashboard')
+            break
+          case 'mentor':
+            navigate('/mentor/dashboard')
+            break
+          case 'institution':
+            navigate('/institution/dashboard')
+            break
+          default:
+            navigate('/student/dashboard')
+        }
       }, 100)
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Registration failed')
@@ -224,16 +250,30 @@ const RegisterPage = () => {
                   name="role"
                   value={formData.role}
                   onChange={handleChange}
-                  className={`w-full pl-12 pr-4 py-3 rounded-xl ${
+                  className={`w-full pl-12 pr-10 py-3 rounded-xl ${
                     isDarkMode 
                       ? 'bg-white/10 border-white/20 text-white' 
                       : 'bg-gray-50 border-gray-200 text-gray-900'
                   } border focus:outline-none focus:border-violet-500 transition-colors appearance-none cursor-pointer`}
+                  style={{
+                    backgroundImage: isDarkMode 
+                      ? "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E\")"
+                      : "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23374151' d='M6 9L1 4h10z'/%3E%3C/svg%3E\")",
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 1rem center',
+                    paddingRight: '2.5rem'
+                  }}
                   required
                 >
-                  <option value="student">Student / Entrepreneur</option>
-                  <option value="mentor">Mentor</option>
-                  <option value="institution">Institution</option>
+                  <option value="student" className={isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}>
+                    Student / Entrepreneur
+                  </option>
+                  <option value="mentor" className={isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}>
+                    Mentor
+                  </option>
+                  <option value="institution" className={isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}>
+                    Institution
+                  </option>
                 </select>
               </div>
             </div>
