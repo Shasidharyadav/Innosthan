@@ -6,7 +6,11 @@ import axios from 'axios'
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 axios.defaults.baseURL = API_URL
 
-console.log('API Base URL configured:', API_URL)
+// Log the API URL for debugging (only in development)
+if (import.meta.env.DEV) {
+  console.log('🔧 API Base URL configured:', API_URL)
+  console.log('🔧 VITE_API_URL env var:', import.meta.env.VITE_API_URL || 'NOT SET (using default)')
+}
 
 export interface User {
   _id: string
