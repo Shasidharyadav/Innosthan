@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
-import { Users, BookOpen, TrendingUp, MessageCircle, Award, Search } from 'lucide-react'
+import { Users, BookOpen, TrendingUp, MessageCircle, Award, Search, CheckCircle } from 'lucide-react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import { useAuthStore } from '../../stores/authStore'

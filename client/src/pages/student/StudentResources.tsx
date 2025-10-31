@@ -64,7 +64,7 @@ const StudentResourcesPage = () => {
   const fetchResources = async () => {
     try {
       const token = localStorage.getItem('token')
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/resources`, {
+      const res = await axios.get('/api/resources', {
         headers: { Authorization: `Bearer ${token}` }
       })
       setResources(res.data.resources)
@@ -103,7 +103,7 @@ const StudentResourcesPage = () => {
     try {
       const token = localStorage.getItem('token')
       await axios.post(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/resources/${resourceId}/download`,
+        `/api/resources/${resourceId}/download`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       )

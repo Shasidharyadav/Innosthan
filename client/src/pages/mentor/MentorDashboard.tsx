@@ -23,6 +23,7 @@ const MentorDashboard = () => {
   const { user, token } = useAuthStore()
   const { isDarkMode, toggleTheme } = useThemeStore()
   const navigate = useNavigate()
+  const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
     activeMentees: 0,
     sessionsThisMonth: 0,

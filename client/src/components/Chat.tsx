@@ -57,8 +57,8 @@ export const Chat = ({ recipientId, recipientName, recipientAvatar, onClose }: C
     socket.on('new-message', (message: Message) => {
       // Only add messages relevant to this chat
       if (
-        (message.sender._id === recipientId && message.receiver._id === user?._id) ||
-        (message.sender._id === user?._id && message.receiver._id === recipientId)
+        (message.sender._id === recipientId && message.receiver?._id === user?._id) ||
+        (message.sender._id === user?._id && message.receiver?._id === recipientId)
       ) {
         // Prevent duplicates
         setMessages(prev => {
