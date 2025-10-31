@@ -38,7 +38,7 @@ export const Chat = ({ recipientId, recipientName, recipientAvatar, onClose }: C
   const [isMinimized, setIsMinimized] = useState(false)
   const [isTyping, setIsTyping] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const typingTimeoutRef = useRef<number>()
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
   const { token, user } = useAuthStore()
   const { socket } = useSocket()
 
