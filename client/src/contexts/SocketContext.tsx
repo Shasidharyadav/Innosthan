@@ -3,6 +3,9 @@ import { io, Socket } from 'socket.io-client'
 import { useAuthStore } from '../stores/authStore'
 import toast from 'react-hot-toast'
 
+// Get API URL from environment variable
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+
 interface SocketContextType {
   socket: Socket | null
   isConnected: boolean
@@ -35,7 +38,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
 
     // Create socket connection with reconnection settings
-    const newSocket = io('http://localhost:5000', {
+    const newSocket = io(API_URL, {
       auth: { token },
       transports: ['websocket', 'polling'],
       reconnection: true,

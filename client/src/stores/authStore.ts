@@ -2,6 +2,12 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import axios from 'axios'
 
+// Configure axios base URL from environment variable
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+axios.defaults.baseURL = API_URL
+
+console.log('API Base URL configured:', API_URL)
+
 export interface User {
   _id: string
   email: string
