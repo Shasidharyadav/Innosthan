@@ -248,7 +248,6 @@ const LandingPage = () => {
           className="absolute inset-0 opacity-40 transition-all duration-300"
           style={{
             background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(124, 58, 237, 0.4) 0%, rgba(236, 72, 153, 0.2) 30%, transparent 70%)`
-            background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(124, 58, 237, 0.4) 0%, rgba(236, 72, 153, 0.2) 30%, transparent 70%)`
           }}
         />
             {/* Floating Orbs in Dark Mode */}
@@ -256,11 +255,7 @@ const LandingPage = () => {
           <motion.div
             key={`orb-${i}`}
             className="absolute rounded-full blur-3xl"
-            key={`orb-${i}`}
-            className="absolute rounded-full blur-3xl"
             animate={{
-              x: [0, Math.random() * 200 - 100, 0],
-              y: [0, Math.random() * 200 - 100, 0],
               x: [0, Math.random() * 200 - 100, 0],
               y: [0, Math.random() * 200 - 100, 0],
               scale: [1, 1.5, 1],
