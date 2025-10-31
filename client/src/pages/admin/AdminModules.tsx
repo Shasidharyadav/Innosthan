@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+<<<<<<< HEAD
 import { useState, useEffect } from 'react'
 import { Plus, Edit, Trash2, Lock, Unlock, BookOpen, Clock, Award, Save, X } from 'lucide-react'
 import axios from 'axios'
@@ -177,10 +178,20 @@ const AdminModules = () => {
       <div className="max-w-7xl mx-auto">
         <motion.div
           className="flex items-center justify-between mb-8"
+=======
+
+const AdminModules = () => {
+  return (
+    <div className="min-h-screen bg-dark-900 p-6">
+      <div className="max-w-7xl mx-auto">
+        <motion.div
+          className="mb-8"
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
           initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6 }}
         >
+<<<<<<< HEAD
           <div>
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">Module Management 📚</h1>
             <p className="text-gray-600 dark:text-white/60 text-lg">Create and manage learning modules for students</p>
@@ -515,6 +526,15 @@ const AdminModules = () => {
             </motion.div>
           </div>
         )}
+=======
+          <h1 className="text-4xl font-bold text-white mb-2">Module Management 📚</h1>
+          <p className="text-white/60 text-lg">Create and manage learning modules</p>
+        </motion.div>
+
+        <div className="glass-card p-6 rounded-2xl">
+          <p className="text-white">Module management page - Coming soon...</p>
+        </div>
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
       </div>
     </div>
   )

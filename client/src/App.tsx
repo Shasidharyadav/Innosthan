@@ -6,6 +6,7 @@ import { SocketProvider } from './contexts/SocketContext'
 import { useThemeStore } from './stores/themeStore'
 
 // Public Pages
+// Public Pages
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
@@ -87,6 +88,7 @@ function App() {
             }}
           />
         <Routes>
+          {/* Public Routes */}
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -285,6 +287,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <StudentDashboard />
+                <StudentDashboard />
               </ProtectedRoute>
             }
           />
@@ -340,6 +343,7 @@ function App() {
             path="/profile"
             element={
               <ProtectedRoute>
+                <StudentProfile />
                 <StudentProfile />
               </ProtectedRoute>
             }

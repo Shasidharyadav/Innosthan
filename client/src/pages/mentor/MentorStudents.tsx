@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+<<<<<<< HEAD
 import { useState, useEffect } from 'react'
 import { Users, BookOpen, TrendingUp, MessageCircle, Award, Clock, Search, Mail, CheckCircle, AlertCircle } from 'lucide-react'
 import axios from 'axios'
@@ -88,12 +89,20 @@ const MentorStudents = () => {
           </button>
         </div>
 
+=======
+
+const MentorStudents = () => {
+  return (
+    <div className="min-h-screen bg-dark-900 p-6">
+      <div className="max-w-7xl mx-auto">
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
         <motion.div
           className="mb-8"
           initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6 }}
         >
+<<<<<<< HEAD
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">My Students 👨‍🎓</h1>
           <p className="text-gray-600 dark:text-white/60 text-lg">Guide and track your mentees' progress</p>
         </motion.div>
@@ -293,6 +302,15 @@ const MentorStudents = () => {
             </p>
           </motion.div>
         )}
+=======
+          <h1 className="text-4xl font-bold text-white mb-2">My Students 👨‍🎓</h1>
+          <p className="text-white/60 text-lg">Track and manage your mentees' progress</p>
+        </motion.div>
+
+        <div className="glass-card p-6 rounded-2xl">
+          <p className="text-white">Students management page - Coming soon...</p>
+        </div>
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
       </div>
     </div>
   )

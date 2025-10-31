@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { motion, AnimatePresence } from 'framer-motion'
 import { Users, MessageCircle, Heart, Share, Search, Filter, Plus, TrendingUp, Award, Clock, X } from 'lucide-react'
 import { useState, useEffect } from 'react'
@@ -37,10 +38,16 @@ interface Comment {
   content: string
   createdAt: string
 }
+=======
+import { motion } from 'framer-motion'
+import { Users, MessageCircle, Heart, Share, Search, Filter, Plus, TrendingUp, Award, Clock } from 'lucide-react'
+import { useState } from 'react'
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
 
 const CommunityHub = () => {
   const [activeFilter, setActiveFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
+<<<<<<< HEAD
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -223,10 +230,95 @@ const CommunityHub = () => {
     const matchesFilter = activeFilter === 'all' || post.category === activeFilter
     const matchesSearch = post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          post.author.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+=======
+
+  const posts = [
+    {
+      id: 1,
+      author: 'Sarah Chen',
+      role: 'Student',
+      avatar: 'SC',
+      time: '2 hours ago',
+      content: 'Just completed the ideation module! The problem-solution fit framework was incredibly helpful. Anyone else working on their value proposition? Would love to discuss different approaches!',
+      likes: 12,
+      comments: 5,
+      tags: ['ideation', 'value-proposition', 'discussion'],
+      category: 'learning',
+      trending: true
+    },
+    {
+      id: 2,
+      author: 'Dr. Raj Patel',
+      role: 'Mentor',
+      avatar: 'RP',
+      time: '4 hours ago',
+      content: 'Pro tip: When validating your idea, talk to at least 50 potential customers before building anything. Quality over quantity in customer interviews! What questions do you ask during customer discovery?',
+      likes: 28,
+      comments: 8,
+      tags: ['validation', 'customer-interviews', 'mentor-tip'],
+      category: 'mentor-tip',
+      trending: true
+    },
+    {
+      id: 3,
+      author: 'Alex Kumar',
+      role: 'Student',
+      avatar: 'AK',
+      time: '1 day ago',
+      content: 'Looking for a co-founder for my ed-tech startup. We have a solid MVP and initial traction. DM me if interested! Also open to feedback on our current approach.',
+      likes: 15,
+      comments: 12,
+      tags: ['co-founder', 'ed-tech', 'startup', 'collaboration'],
+      category: 'collaboration',
+      trending: false
+    },
+    {
+      id: 4,
+      author: 'Maria Garcia',
+      role: 'Student',
+      avatar: 'MG',
+      time: '2 days ago',
+      content: 'Just got my first customer! 🎉 The validation process was tough but worth it. Here are the key lessons I learned...',
+      likes: 45,
+      comments: 18,
+      tags: ['success-story', 'validation', 'customer-acquisition'],
+      category: 'success',
+      trending: true
+    },
+    {
+      id: 5,
+      author: 'John Smith',
+      role: 'Student',
+      avatar: 'JS',
+      time: '3 days ago',
+      content: 'Struggling with pricing strategy for my SaaS product. Any mentors or experienced founders who can share insights on pricing models?',
+      likes: 8,
+      comments: 6,
+      tags: ['pricing', 'saas', 'help-needed'],
+      category: 'help',
+      trending: false
+    }
+  ]
+
+  const categories = [
+    { id: 'all', name: 'All Posts', count: posts.length },
+    { id: 'learning', name: 'Learning', count: posts.filter(p => p.category === 'learning').length },
+    { id: 'mentor-tip', name: 'Mentor Tips', count: posts.filter(p => p.category === 'mentor-tip').length },
+    { id: 'success', name: 'Success Stories', count: posts.filter(p => p.category === 'success').length },
+    { id: 'collaboration', name: 'Collaboration', count: posts.filter(p => p.category === 'collaboration').length },
+    { id: 'help', name: 'Help Needed', count: posts.filter(p => p.category === 'help').length }
+  ]
+
+  const filteredPosts = posts.filter(post => {
+    const matchesFilter = activeFilter === 'all' || post.category === activeFilter
+    const matchesSearch = post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         post.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
                          post.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
     return matchesFilter && matchesSearch
   })
 
+<<<<<<< HEAD
   if (loading) {
     return (
       <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
@@ -235,6 +327,8 @@ const CommunityHub = () => {
     )
   }
 
+=======
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'learning': return 'bg-violet-500/20 text-violet-400 border-violet-500/30'
@@ -247,19 +341,29 @@ const CommunityHub = () => {
   }
 
   return (
+<<<<<<< HEAD
     <div className="min-h-screen bg-white dark:bg-black transition-colors duration-500 p-6">
       <div className="max-w-6xl mx-auto">
         {/* Back Button */}
         <BackButton />
 
+=======
+    <div className="min-h-screen bg-dark-900 p-6">
+      <div className="max-w-6xl mx-auto">
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
         <motion.div
           className="mb-8"
           initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6 }}
         >
+<<<<<<< HEAD
           <h1 className={`text-4xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Community Hub 🌟</h1>
           <p className={`text-lg ${isDarkMode ? 'text-white/60' : 'text-gray-600'}`}>Connect, learn, and grow with fellow entrepreneurs from around the world</p>
+=======
+          <h1 className="text-4xl font-bold text-white mb-2">Community Hub 🌟</h1>
+          <p className="text-white/60 text-lg">Connect, learn, and grow with fellow entrepreneurs from around the world</p>
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
         </motion.div>
 
         {/* Community Stats */}
@@ -275,8 +379,13 @@ const CommunityHub = () => {
                 <Users className="w-6 h-6 text-white" />
               </div>
               <div>
+<<<<<<< HEAD
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">1,247</div>
                 <div className="text-sm text-gray-600 dark:text-white/60">Active Members</div>
+=======
+                <div className="text-2xl font-bold text-white">1,247</div>
+                <div className="text-sm text-white/60">Active Members</div>
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
               </div>
             </div>
           </div>
@@ -287,8 +396,13 @@ const CommunityHub = () => {
                 <MessageCircle className="w-6 h-6 text-white" />
               </div>
               <div>
+<<<<<<< HEAD
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">3,421</div>
                 <div className="text-sm text-gray-600 dark:text-white/60">Discussions</div>
+=======
+                <div className="text-2xl font-bold text-white">3,421</div>
+                <div className="text-sm text-white/60">Discussions</div>
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
               </div>
             </div>
           </div>
@@ -299,8 +413,13 @@ const CommunityHub = () => {
                 <TrendingUp className="w-6 h-6 text-white" />
               </div>
               <div>
+<<<<<<< HEAD
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">89%</div>
                 <div className="text-sm text-gray-600 dark:text-white/60">Helpful Posts</div>
+=======
+                <div className="text-2xl font-bold text-white">89%</div>
+                <div className="text-sm text-white/60">Helpful Posts</div>
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
               </div>
             </div>
           </div>
@@ -311,8 +430,13 @@ const CommunityHub = () => {
                 <Award className="w-6 h-6 text-white" />
               </div>
               <div>
+<<<<<<< HEAD
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">156</div>
                 <div className="text-sm text-gray-600 dark:text-white/60">Success Stories</div>
+=======
+                <div className="text-2xl font-bold text-white">156</div>
+                <div className="text-sm text-white/60">Success Stories</div>
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
               </div>
             </div>
           </div>
@@ -327,18 +451,31 @@ const CommunityHub = () => {
         >
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1 relative">
+<<<<<<< HEAD
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-white/40" />
+=======
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/40" />
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
               <input
                 type="text"
                 placeholder="Search discussions, topics, or people..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+<<<<<<< HEAD
                 className="w-full pl-10 pr-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/40 focus:outline-none focus:border-violet-500 focus:bg-gray-50 dark:focus:bg-white/10 transition-all"
               />
             </div>
             <div className="flex items-center space-x-2">
               <Filter className="w-5 h-5 text-gray-400 dark:text-white/40" />
               <span className="text-gray-600 dark:text-white/60 text-sm">Filter by:</span>
+=======
+                className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-violet-500 focus:bg-white/10 transition-all"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Filter className="w-5 h-5 text-white/40" />
+              <span className="text-white/60 text-sm">Filter by:</span>
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
             </div>
           </div>
           
@@ -351,7 +488,11 @@ const CommunityHub = () => {
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   activeFilter === category.id
                     ? 'bg-violet-500 text-white'
+<<<<<<< HEAD
                     : 'bg-gray-200 dark:bg-white/10 text-gray-700 dark:text-white/60 hover:bg-gray-300 dark:hover:bg-white/20 hover:text-gray-900 dark:hover:text-white'
+=======
+                    : 'bg-white/10 text-white/60 hover:bg-white/20 hover:text-white'
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
                 }`}
               >
                 {category.name} ({category.count})
@@ -364,7 +505,11 @@ const CommunityHub = () => {
         <div className="space-y-6">
           {filteredPosts.map((post, index) => (
             <motion.div
+<<<<<<< HEAD
               key={post._id}
+=======
+              key={post.id}
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
               className="glass-card glass-card-hover p-6 rounded-2xl"
               initial={{ y: 50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -374,6 +519,7 @@ const CommunityHub = () => {
               {/* Post Header */}
               <div className="flex items-center space-x-4 mb-4">
                 <div className="w-12 h-12 bg-gradient-to-r from-violet-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
+<<<<<<< HEAD
                   {post.author.avatar || post.author.name.charAt(0)}
                 </div>
                 <div className="flex-1">
@@ -395,6 +541,19 @@ const CommunityHub = () => {
                         : 'bg-violet-500/20 text-violet-400 border border-violet-500/30'
                     }`}>
                       {post.author.role}
+=======
+                  {post.avatar}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <h3 className="text-white font-semibold">{post.author}</h3>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      post.role === 'Mentor' 
+                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                        : 'bg-violet-500/20 text-violet-400 border border-violet-500/30'
+                    }`}>
+                      {post.role}
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
                     </span>
                     {post.trending && (
                       <span className="px-2 py-1 rounded-full text-xs font-medium bg-orange-500/20 text-orange-400 border border-orange-500/30">
@@ -402,22 +561,36 @@ const CommunityHub = () => {
                       </span>
                     )}
                   </div>
+<<<<<<< HEAD
                   <div className="flex items-center space-x-2 text-gray-600 dark:text-white/60 text-sm">
                     <Clock className="w-4 h-4" />
                     <span>{new Date(post.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+=======
+                  <div className="flex items-center space-x-2 text-white/60 text-sm">
+                    <Clock className="w-4 h-4" />
+                    <span>{post.time}</span>
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
                   </div>
                 </div>
               </div>
 
               {/* Post Content */}
+<<<<<<< HEAD
               <p className="text-gray-900 dark:text-white mb-4 leading-relaxed">{post.content}</p>
+=======
+              <p className="text-white mb-4 leading-relaxed">{post.content}</p>
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
 
               {/* Tags */}
               <div className="flex flex-wrap gap-2 mb-4">
                 {post.tags.map((tag, tagIndex) => (
                   <span
                     key={tagIndex}
+<<<<<<< HEAD
                     className="px-3 py-1 bg-gray-200 dark:bg-white/10 text-gray-700 dark:text-white/70 text-sm rounded-full hover:bg-gray-300 dark:hover:bg-white/20 transition-colors cursor-pointer"
+=======
+                    className="px-3 py-1 bg-white/10 text-white/70 text-sm rounded-full hover:bg-white/20 transition-colors cursor-pointer"
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
                   >
                     #{tag}
                   </span>
@@ -427,6 +600,7 @@ const CommunityHub = () => {
               {/* Post Actions */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-6">
+<<<<<<< HEAD
                   <button 
                     onClick={() => likePost(post._id)}
                     className="flex items-center space-x-2 text-gray-600 dark:text-white/60 hover:text-pink-400 transition-colors"
@@ -442,6 +616,17 @@ const CommunityHub = () => {
                     <span>{Array.isArray(post.comments) ? post.comments.length : post.comments}</span>
                   </button>
                   <button className="flex items-center space-x-2 text-gray-600 dark:text-white/60 hover:text-primary-400 transition-colors">
+=======
+                  <button className="flex items-center space-x-2 text-white/60 hover:text-pink-400 transition-colors">
+                    <Heart className="w-5 h-5" />
+                    <span>{post.likes}</span>
+                  </button>
+                  <button className="flex items-center space-x-2 text-white/60 hover:text-violet-400 transition-colors">
+                    <MessageCircle className="w-5 h-5" />
+                    <span>{post.comments}</span>
+                  </button>
+                  <button className="flex items-center space-x-2 text-white/60 hover:text-primary-400 transition-colors">
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
                     <Share className="w-5 h-5" />
                     <span>Share</span>
                   </button>
@@ -461,14 +646,19 @@ const CommunityHub = () => {
           animate={{ scale: 1 }}
           transition={{ duration: 0.6, delay: 0.8 }}
         >
+<<<<<<< HEAD
           <button 
             onClick={() => setShowCreateModal(true)}
             className="w-14 h-14 bg-gradient-to-r from-violet-500 to-pink-500 rounded-full flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110"
           >
+=======
+          <button className="w-14 h-14 bg-gradient-to-r from-violet-500 to-pink-500 rounded-full flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110">
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
             <Plus className="w-6 h-6" />
           </button>
         </motion.div>
 
+<<<<<<< HEAD
         {/* Empty State */}
         {filteredPosts.length === 0 && !loading && (
           <div className="glass-card p-12 rounded-2xl text-center">
@@ -485,6 +675,8 @@ const CommunityHub = () => {
           </div>
         )}
 
+=======
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
         {/* Community Guidelines */}
         <motion.div
           className="mt-8 glass-card p-6 rounded-2xl"
@@ -492,7 +684,11 @@ const CommunityHub = () => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6, delay: 1.0 }}
         >
+<<<<<<< HEAD
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">🤝 Community Guidelines</h2>
+=======
+          <h2 className="text-2xl font-bold text-white mb-4">🤝 Community Guidelines</h2>
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-3">
               <div className="flex items-start space-x-3">
@@ -500,8 +696,13 @@ const CommunityHub = () => {
                   <div className="w-2 h-2 bg-mint-400 rounded-full"></div>
                 </div>
                 <div>
+<<<<<<< HEAD
                   <h3 className="text-gray-900 dark:text-white font-semibold">Be Respectful</h3>
                   <p className="text-gray-600 dark:text-white/60 text-sm">Treat everyone with kindness and respect</p>
+=======
+                  <h3 className="text-white font-semibold">Be Respectful</h3>
+                  <p className="text-white/60 text-sm">Treat everyone with kindness and respect</p>
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
                 </div>
               </div>
               <div className="flex items-start space-x-3">
@@ -509,8 +710,13 @@ const CommunityHub = () => {
                   <div className="w-2 h-2 bg-violet-400 rounded-full"></div>
                 </div>
                 <div>
+<<<<<<< HEAD
                   <h3 className="text-gray-900 dark:text-white font-semibold">Share Knowledge</h3>
                   <p className="text-gray-600 dark:text-white/60 text-sm">Help others by sharing your experiences</p>
+=======
+                  <h3 className="text-white font-semibold">Share Knowledge</h3>
+                  <p className="text-white/60 text-sm">Help others by sharing your experiences</p>
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
                 </div>
               </div>
             </div>
@@ -520,8 +726,13 @@ const CommunityHub = () => {
                   <div className="w-2 h-2 bg-amber-400 rounded-full"></div>
                 </div>
                 <div>
+<<<<<<< HEAD
                   <h3 className="text-gray-900 dark:text-white font-semibold">Stay On Topic</h3>
                   <p className="text-gray-600 dark:text-white/60 text-sm">Keep discussions relevant to entrepreneurship</p>
+=======
+                  <h3 className="text-white font-semibold">Stay On Topic</h3>
+                  <p className="text-white/60 text-sm">Keep discussions relevant to entrepreneurship</p>
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
                 </div>
               </div>
               <div className="flex items-start space-x-3">
@@ -529,13 +740,19 @@ const CommunityHub = () => {
                   <div className="w-2 h-2 bg-pink-400 rounded-full"></div>
                 </div>
                 <div>
+<<<<<<< HEAD
                   <h3 className="text-gray-900 dark:text-white font-semibold">Encourage Others</h3>
                   <p className="text-gray-600 dark:text-white/60 text-sm">Support fellow entrepreneurs in their journey</p>
+=======
+                  <h3 className="text-white font-semibold">Encourage Others</h3>
+                  <p className="text-white/60 text-sm">Support fellow entrepreneurs in their journey</p>
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
                 </div>
               </div>
             </div>
           </div>
         </motion.div>
+<<<<<<< HEAD
 
         {/* Chat Component */}
         <AnimatePresence>
@@ -751,6 +968,8 @@ const CommunityHub = () => {
             </motion.div>
           </div>
         )}
+=======
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
       </div>
     </div>
   )

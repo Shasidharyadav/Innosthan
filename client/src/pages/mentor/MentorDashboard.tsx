@@ -1,9 +1,14 @@
 import { motion } from 'framer-motion'
+<<<<<<< HEAD
 import { useNavigate, Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '../../stores/authStore'
 import { useThemeStore } from '../../stores/themeStore'
 import axios from 'axios'
+=======
+import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '../../stores/authStore'
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
 import { 
   Users, 
   Calendar, 
@@ -14,6 +19,7 @@ import {
   TrendingUp,
   Clock,
   BookOpen,
+<<<<<<< HEAD
   Video,
   Sun,
   Moon,
@@ -74,6 +80,20 @@ const MentorDashboard = () => {
     { label: 'Sessions This Month', value: stats.sessionsThisMonth, icon: <Calendar className="w-6 h-6" />, color: 'text-primary-400', change: 'All sessions' },
     { label: 'Assignments Reviewed', value: stats.assignmentsReviewed, icon: <CheckCircle className="w-6 h-6" />, color: 'text-mint-400', change: 'Pending review' },
     { label: 'Average Rating', value: stats.averageRating, icon: <Star className="w-6 h-6" />, color: 'text-amber-400', change: 'From students' }
+=======
+  Video
+} from 'lucide-react'
+
+const MentorDashboard = () => {
+  const { user } = useAuthStore()
+  const navigate = useNavigate()
+
+  const stats = [
+    { label: 'Active Mentees', value: 12, icon: <Users className="w-6 h-6" />, color: 'text-violet-400', change: '+2 this month' },
+    { label: 'Sessions This Month', value: 24, icon: <Calendar className="w-6 h-6" />, color: 'text-primary-400', change: '+5 from last month' },
+    { label: 'Assignments Reviewed', value: 18, icon: <CheckCircle className="w-6 h-6" />, color: 'text-mint-400', change: '+3 pending' },
+    { label: 'Average Rating', value: '4.9', icon: <Star className="w-6 h-6" />, color: 'text-amber-400', change: '156 reviews' }
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
   ]
 
   const upcomingSessions = [
@@ -175,6 +195,7 @@ const MentorDashboard = () => {
   ]
 
   return (
+<<<<<<< HEAD
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
@@ -258,6 +279,23 @@ const MentorDashboard = () => {
               </div>
             </div>
           </Link>
+=======
+    <div className="min-h-screen bg-dark-900 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <motion.div
+          className="mb-8"
+          initial={{ y: -50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h1 className="text-4xl font-bold text-white mb-2">
+            Welcome back, {user?.name || 'Mentor'}! 🎓
+          </h1>
+          <p className="text-white/60 text-lg">
+            Guide and inspire the next generation of entrepreneurs
+          </p>
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
         </motion.div>
 
         {/* Stats Grid */}
@@ -267,7 +305,11 @@ const MentorDashboard = () => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
+<<<<<<< HEAD
           {statsData.map((stat, index) => (
+=======
+          {stats.map((stat, index) => (
+>>>>>>> 006e2d3b07eba3abf13560b3b8b3bafb5e441cef
             <motion.div
               key={index}
               className="glass-card glass-card-hover p-6 rounded-2xl"
