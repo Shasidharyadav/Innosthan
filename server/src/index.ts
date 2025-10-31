@@ -37,18 +37,33 @@ const server = createServer(app)
 
 // Configure allowed origins for CORS
 const allowedOrigins = process.env.CLIENT_URL 
-  ? process.env.CLIENT_URL.split(',').map(url => url.trim())
+  ? process.env.CLIENT_URL.split(',').map(url => url.trim().replace(/\/$/, ''))
   : ["http://localhost:3000", "https://innosthan.vercel.app"]
+
+// Normalize origins (remove trailing slashes)
+const normalizedOrigins = allowedOrigins.map(origin => origin.replace(/\/$/, ''))
+
+console.log('🌐 Allowed CORS origins:', normalizedOrigins)
+console.log('🌐 CLIENT_URL env var:', process.env.CLIENT_URL || 'NOT SET (using defaults)')
 
 const corsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true)
+    if (!origin) {
+      console.log('✅ CORS allowed: No origin header')
+      return callback(null, true)
+    }
+    
+    // Normalize origin (remove trailing slash)
+    const normalizedOrigin = origin.replace(/\/$/, '')
     
     // Check if origin is in allowed list
-    if (allowedOrigins.includes(origin)) {
+    if (normalizedOrigins.includes(normalizedOrigin)) {
+      console.log(`✅ CORS allowed for origin: ${normalizedOrigin}`)
       callback(null, true)
     } else {
+      console.log(`❌ CORS blocked for origin: ${normalizedOrigin}`)
+      console.log(`❌ Allowed origins:`, normalizedOrigins)
       callback(new Error('Not allowed by CORS'))
     }
   },
@@ -61,9 +76,16 @@ const io = new Server(server, {
   cors: corsOptions
 })
 
-// Security middleware
-app.use(helmet())
+// Security middleware - configure helmet to not interfere with CORS
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}))
+
+// CORS middleware - MUST be before routes
 app.use(cors(corsOptions))
+
+// Handle preflight requests explicitly
+app.options('*', cors(corsOptions))
 
 // Rate limiting
 const limiter = rateLimit({
