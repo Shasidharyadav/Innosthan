@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react'
 import { useAuthStore } from '../../stores/authStore'
 import { useThemeStore } from '../../stores/themeStore'
 import axios from 'axios'
-import { 
-  Users, 
-  Calendar, 
+import {
+  Users,
+  Calendar,
   CheckCircle,
   Star,
   MessageCircle,
@@ -16,15 +16,13 @@ import {
   BookOpen,
   Video,
   Sun,
-  Moon,
-  Plus
+  Moon
 } from 'lucide-react'
 
 const MentorDashboard = () => {
   const { user, token } = useAuthStore()
   const { isDarkMode, toggleTheme } = useThemeStore()
   const navigate = useNavigate()
-  const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
     activeMentees: 0,
     sessionsThisMonth: 0,

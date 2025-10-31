@@ -13,6 +13,11 @@ interface Message {
     name: string
     avatar?: string
   }
+  receiver?: {
+    _id: string
+    name: string
+    avatar?: string
+  }
   content: string
   createdAt: string
   read: boolean

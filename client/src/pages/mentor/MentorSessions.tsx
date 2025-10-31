@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
-import { Calendar, Video, MessageCircle, Clock, Users, Plus, X, Sun, Moon } from 'lucide-react'
+import { Calendar, Video, MessageCircle, Clock, Users } from 'lucide-react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import { useAuthStore } from '../../stores/authStore'

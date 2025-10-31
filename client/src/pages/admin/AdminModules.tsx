@@ -246,7 +246,7 @@ const AdminModules = () => {
                 <div className="text-sm text-gray-600 dark:text-white/60">Total XP</div>
               </div>
             </div>
-          </motion.div>
+        </motion.div>
 
           <motion.div
             className="glass-card p-6 rounded-2xl"
@@ -479,7 +479,7 @@ const AdminModules = () => {
                       className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:border-violet-500 transition-colors"
                       required
                     />
-                  </div>
+        </div>
                 </div>
 
                 <div className="flex items-center space-x-2">

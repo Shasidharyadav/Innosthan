@@ -187,7 +187,7 @@ const ResourcesPage = () => {
                       ))}
                     </div>
 
-                    {category.title === "Video Courses" && item.rating && (
+                    {category.title === "Video Courses" && 'rating' in item && item.rating && (
                       <div className="flex items-center space-x-2 mb-4">
                         <div className="flex items-center">
                           {[...Array(5)].map((_, i) => (
@@ -204,10 +204,14 @@ const ResourcesPage = () => {
                         <span className={`text-sm ${isDarkMode ? 'text-white/60' : 'text-gray-500'}`}>
                           {item.rating}/5
                         </span>
-                        <Users className="w-4 h-4 ml-2" />
-                        <span className={`text-sm ${isDarkMode ? 'text-white/60' : 'text-gray-500'}`}>
-                          {item.students}
-                        </span>
+                        {'students' in item && (
+                          <>
+                            <Users className="w-4 h-4 ml-2" />
+                            <span className={`text-sm ${isDarkMode ? 'text-white/60' : 'text-gray-500'}`}>
+                              {item.students}
+                            </span>
+                          </>
+                        )}
                       </div>
                     )}
 
