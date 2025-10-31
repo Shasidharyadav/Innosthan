@@ -10,7 +10,6 @@ import {
   Code,
   Download,
   Play,
-  Clock,
   Users,
   Star,
   Headphones
