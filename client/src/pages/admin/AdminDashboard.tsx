@@ -21,8 +21,7 @@ import axios from 'axios'
 const AdminDashboard = () => {
   const { isDarkMode, toggleTheme } = useThemeStore()
   const { user } = useAuthStore()
-  const [viewMode, setViewMode] = useState<'admin' | 'student' | 'mentor' | 'institution'>('admin')
-  const [analytics, setAnalytics] = useState<any>(null)
+  const [viewMode] = useState<'admin' | 'student' | 'mentor' | 'institution'>('admin')
   const [loading, setLoading] = useState(true)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -40,11 +39,8 @@ const AdminDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const analyticsRes = await axios.get('/api/analytics/platform').catch(() => ({ data: null }))
-      if (analyticsRes.data) {
-        setAnalytics(analyticsRes.data)
-        // Update stats with real data if available
-      }
+      await axios.get('/api/analytics/platform').catch(() => ({ data: null }))
+      // Update stats with real data if available
     } catch (error: any) {
       console.error('Fetch dashboard data error:', error)
     } finally {

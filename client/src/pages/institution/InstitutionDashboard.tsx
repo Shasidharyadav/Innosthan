@@ -15,11 +15,8 @@ import {
   Sun,
   Moon,
   Menu,
-  X,
-  ArrowRight
+  X
 } from 'lucide-react'
-import axios from 'axios'
-import toast from 'react-hot-toast'
 
 const InstitutionDashboard = () => {
   const { user } = useAuthStore()
