@@ -2,23 +2,40 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { useAuthStore } from './stores/authStore'
 import { useEffect } from 'react'
+import { SocketProvider } from './contexts/SocketContext'
+import { useThemeStore } from './stores/themeStore'
 
 // Public Pages
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
+import PlatformPage from './pages/public/PlatformPage'
+import FeaturesPage from './pages/public/FeaturesPage'
+import ShowcasePage from './pages/public/ShowcasePage'
+import ResourcesPage from './pages/public/ResourcesPage'
+import AboutPage from './pages/public/AboutPage'
+import ContactPage from './pages/public/ContactPage'
+import HelpPage from './pages/public/HelpPage'
+import FAQPage from './pages/public/FAQPage'
+import PrivacyPage from './pages/public/PrivacyPage'
+import TermsPage from './pages/public/TermsPage'
+import CookiesPage from './pages/public/CookiesPage'
 
 // Student Pages
 import StudentDashboard from './pages/student/StudentDashboard'
 import LearningHub from './pages/student/LearningHub'
 import CommunityHub from './pages/student/CommunityHub'
 import MentorshipHub from './pages/student/MentorshipHub'
+import MessagesHub from './pages/student/MessagesHub'
 import StudentProfile from './pages/student/StudentProfile'
+import SwotAnalysis from './pages/student/SwotAnalysis'
+import StudentResources from './pages/student/StudentResources'
 
 // Mentor Pages
 import MentorDashboard from './pages/mentor/MentorDashboard'
 import MentorSessions from './pages/mentor/MentorSessions'
 import MentorStudents from './pages/mentor/MentorStudents'
+import MentorCourses from './pages/mentor/MentorCourses'
 import MentorProfile from './pages/mentor/MentorProfile'
 
 // Admin Pages
@@ -39,35 +56,52 @@ import LoadingSpinner from './components/LoadingSpinner'
 
 function App() {
   const { checkAuth, isLoading } = useAuthStore()
+  const { isDarkMode, setTheme } = useThemeStore()
 
   useEffect(() => {
     checkAuth()
   }, [checkAuth])
+
+  // Initialize theme on mount
+  useEffect(() => {
+    setTheme(isDarkMode)
+  }, [])
 
   if (isLoading) {
     return <LoadingSpinner />
   }
 
   return (
-    <Router>
-      <div className="min-h-screen bg-dark-900">
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: 'rgba(15, 23, 42, 0.9)',
-              color: '#fff',
-              border: '1px solid rgba(124, 58, 237, 0.3)',
-              backdropFilter: 'blur(10px)',
-            },
-          }}
-        />
+    <SocketProvider>
+      <Router>
+        <div className="min-h-screen">
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              className: 'dark:bg-gray-800 dark:text-white bg-white text-gray-900',
+              style: {
+                border: '1px solid rgba(124, 58, 237, 0.3)',
+                backdropFilter: 'blur(10px)',
+              },
+            }}
+          />
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/platform" element={<PlatformPage />} />
+          <Route path="/features" element={<FeaturesPage />} />
+          <Route path="/showcase" element={<ShowcasePage />} />
+          <Route path="/resources" element={<ResourcesPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/help" element={<HelpPage />} />
+          <Route path="/faq" element={<FAQPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/cookies" element={<CookiesPage />} />
           
           {/* Student Routes */}
           <Route
@@ -95,6 +129,14 @@ function App() {
             }
           />
           <Route
+            path="/student/messages"
+            element={
+              <ProtectedRoute requiredRole="student">
+                <MessagesHub />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/student/mentorship"
             element={
               <ProtectedRoute requiredRole="student">
@@ -110,6 +152,22 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/student/swot"
+            element={
+              <ProtectedRoute requiredRole="student">
+                <SwotAnalysis />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/resources"
+            element={
+              <ProtectedRoute requiredRole="student">
+                <StudentResources />
+              </ProtectedRoute>
+            }
+          />
           
           {/* Mentor Routes */}
           <Route
@@ -117,6 +175,14 @@ function App() {
             element={
               <ProtectedRoute requiredRole="mentor">
                 <MentorDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/mentor/courses"
+            element={
+              <ProtectedRoute requiredRole="mentor">
+                <MentorCourses />
               </ProtectedRoute>
             }
           />
@@ -281,6 +347,7 @@ function App() {
         </Routes>
       </div>
     </Router>
+    </SocketProvider>
   )
 }
 

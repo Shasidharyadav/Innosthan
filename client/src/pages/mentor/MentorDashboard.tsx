@@ -1,6 +1,9 @@
 import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { useAuthStore } from '../../stores/authStore'
+import { useThemeStore } from '../../stores/themeStore'
+import axios from 'axios'
 import { 
   Users, 
   Calendar, 
@@ -11,18 +14,66 @@ import {
   TrendingUp,
   Clock,
   BookOpen,
-  Video
+  Video,
+  Sun,
+  Moon,
+  Plus
 } from 'lucide-react'
 
 const MentorDashboard = () => {
-  const { user } = useAuthStore()
+  const { user, token } = useAuthStore()
+  const { isDarkMode, toggleTheme } = useThemeStore()
   const navigate = useNavigate()
+  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({
+    activeMentees: 0,
+    sessionsThisMonth: 0,
+    assignmentsReviewed: 0,
+    averageRating: '0.0'
+  })
 
-  const stats = [
-    { label: 'Active Mentees', value: 12, icon: <Users className="w-6 h-6" />, color: 'text-violet-400', change: '+2 this month' },
-    { label: 'Sessions This Month', value: 24, icon: <Calendar className="w-6 h-6" />, color: 'text-primary-400', change: '+5 from last month' },
-    { label: 'Assignments Reviewed', value: 18, icon: <CheckCircle className="w-6 h-6" />, color: 'text-mint-400', change: '+3 pending' },
-    { label: 'Average Rating', value: '4.9', icon: <Star className="w-6 h-6" />, color: 'text-amber-400', change: '156 reviews' }
+  useEffect(() => {
+    if (isDarkMode) {
+      document.body.classList.add('dark')
+    } else {
+      document.body.classList.remove('dark')
+    }
+  }, [isDarkMode])
+
+  useEffect(() => {
+    fetchDashboardData()
+  }, [])
+
+  const fetchDashboardData = async () => {
+    try {
+      const [usersRes, sessionsRes] = await Promise.all([
+        axios.get('/api/users', {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { role: 'student' }
+        }),
+        axios.get('/api/sessions', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      ])
+
+      setStats({
+        activeMentees: usersRes.data.users?.length || 0,
+        sessionsThisMonth: sessionsRes.data.sessions?.length || 0,
+        assignmentsReviewed: 0,
+        averageRating: '5.0'
+      })
+    } catch (error) {
+      console.error('Fetch dashboard data error:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const statsData = [
+    { label: 'Active Mentees', value: stats.activeMentees, icon: <Users className="w-6 h-6" />, color: 'text-violet-400', change: 'Total students' },
+    { label: 'Sessions This Month', value: stats.sessionsThisMonth, icon: <Calendar className="w-6 h-6" />, color: 'text-primary-400', change: 'All sessions' },
+    { label: 'Assignments Reviewed', value: stats.assignmentsReviewed, icon: <CheckCircle className="w-6 h-6" />, color: 'text-mint-400', change: 'Pending review' },
+    { label: 'Average Rating', value: stats.averageRating, icon: <Star className="w-6 h-6" />, color: 'text-amber-400', change: 'From students' }
   ]
 
   const upcomingSessions = [
@@ -124,21 +175,89 @@ const MentorDashboard = () => {
   ]
 
   return (
-    <div className="min-h-screen bg-dark-900 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <motion.div
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+              Welcome back, {user?.name || 'Mentor'}! 🎓
+            </h1>
+            <p className="text-gray-600 dark:text-white/60 text-lg">
+              Guide and inspire the next generation of entrepreneurs
+            </p>
+          </motion.div>
+          
+          <button
+            onClick={toggleTheme}
+            className="p-3 rounded-xl bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 transition-colors shadow-md"
+          >
+            {isDarkMode ? (
+              <Sun className="w-5 h-5 text-yellow-400" />
+            ) : (
+              <Moon className="w-5 h-5 text-gray-700" />
+            )}
+          </button>
+        </div>
+
+        {/* Quick Actions */}
         <motion.div
-          className="mb-8"
-          initial={{ y: -50, opacity: 0 }}
+          className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
+          initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6 }}
+          transition={{ delay: 0.3 }}
         >
-          <h1 className="text-4xl font-bold text-white mb-2">
-            Welcome back, {user?.name || 'Mentor'}! 🎓
-          </h1>
-          <p className="text-white/60 text-lg">
-            Guide and inspire the next generation of entrepreneurs
-          </p>
+          <Link to="/mentor/courses" className="glass-card p-6 rounded-2xl hover:scale-105 transition-transform cursor-pointer">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-gradient-to-r from-violet-500 to-pink-500 rounded-xl flex items-center justify-center">
+                <BookOpen className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <div className="text-lg font-semibold text-gray-900 dark:text-white">My Courses</div>
+                <div className="text-sm text-gray-600 dark:text-white/60">Create & manage</div>
+              </div>
+            </div>
+          </Link>
+
+          <Link to="/mentor/students" className="glass-card p-6 rounded-2xl hover:scale-105 transition-transform cursor-pointer">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-gradient-to-r from-mint-500 to-teal-500 rounded-xl flex items-center justify-center">
+                <Users className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <div className="text-lg font-semibold text-gray-900 dark:text-white">My Students</div>
+                <div className="text-sm text-gray-600 dark:text-white/60">Guide & track</div>
+              </div>
+            </div>
+          </Link>
+
+          <Link to="/mentor/sessions" className="glass-card p-6 rounded-2xl hover:scale-105 transition-transform cursor-pointer">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl flex items-center justify-center">
+                <Calendar className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <div className="text-lg font-semibold text-gray-900 dark:text-white">Sessions</div>
+                <div className="text-sm text-gray-600 dark:text-white/60">Schedule meetings</div>
+              </div>
+            </div>
+          </Link>
+
+          <Link to="/mentor/profile" className="glass-card p-6 rounded-2xl hover:scale-105 transition-transform cursor-pointer">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl flex items-center justify-center">
+                <Star className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <div className="text-lg font-semibold text-gray-900 dark:text-white">Profile</div>
+                <div className="text-sm text-gray-600 dark:text-white/60">View & edit</div>
+              </div>
+            </div>
+          </Link>
         </motion.div>
 
         {/* Stats Grid */}
@@ -148,7 +267,7 @@ const MentorDashboard = () => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          {stats.map((stat, index) => (
+          {statsData.map((stat, index) => (
             <motion.div
               key={index}
               className="glass-card glass-card-hover p-6 rounded-2xl"

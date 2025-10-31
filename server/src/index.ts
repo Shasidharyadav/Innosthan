@@ -19,9 +19,18 @@ import assignmentRoutes from './routes/assignments'
 import mentorRoutes from './routes/mentor'
 import leaderboardRoutes from './routes/leaderboard'
 import analyticsRoutes from './routes/analytics'
+import swotRoutes from './routes/swot'
+import resourceRoutes from './routes/resources'
+import communityRoutes from './routes/community'
+import sessionRoutes from './routes/sessions'
+import cohortRoutes from './routes/cohorts'
+import messageRoutes from './routes/messages'
 
 // Import middleware
 import { authenticateToken } from './middleware/auth'
+
+// Import Socket.io handlers
+import { setupSocketHandlers } from './socket/handlers'
 
 const app = express()
 const server = createServer(app)
@@ -64,24 +73,8 @@ const connectDB = async () => {
 // Connect to database
 connectDB()
 
-// Socket.io for real-time features
-io.on('connection', (socket) => {
-  console.log('User connected:', socket.id)
-  
-  socket.on('join-room', (roomId) => {
-    socket.join(roomId)
-    console.log(`User ${socket.id} joined room ${roomId}`)
-  })
-  
-  socket.on('leave-room', (roomId) => {
-    socket.leave(roomId)
-    console.log(`User ${socket.id} left room ${roomId}`)
-  })
-  
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id)
-  })
-})
+// Setup Socket.io with comprehensive handlers
+setupSocketHandlers(io)
 
 // Make io available to routes
 app.set('io', io)
@@ -103,6 +96,12 @@ app.use('/api/assignments', authenticateToken, assignmentRoutes)
 app.use('/api/mentor', authenticateToken, mentorRoutes)
 app.use('/api/leaderboard', authenticateToken, leaderboardRoutes)
 app.use('/api/analytics', authenticateToken, analyticsRoutes)
+app.use('/api/swot', authenticateToken, swotRoutes)
+app.use('/api/resources', authenticateToken, resourceRoutes)
+app.use('/api/community', authenticateToken, communityRoutes)
+app.use('/api/sessions', authenticateToken, sessionRoutes)
+app.use('/api/cohorts', authenticateToken, cohortRoutes)
+app.use('/api/messages', authenticateToken, messageRoutes)
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

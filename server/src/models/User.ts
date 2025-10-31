@@ -71,8 +71,7 @@ const userSchema = new Schema<IUser>({
   timestamps: true
 })
 
-// Index for performance
-userSchema.index({ email: 1 })
+// Index for performance (email already has unique index from schema definition)
 userSchema.index({ role: 1 })
 userSchema.index({ xp: -1 }) // For leaderboard
 

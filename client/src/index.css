@@ -8,9 +8,15 @@
   }
   
   body {
-    @apply bg-dark-900 text-white font-sans;
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+    @apply font-sans transition-colors duration-300;
+    background: #ffffff;
+    color: #1f2937;
     min-height: 100vh;
+  }
+
+  body.dark {
+    @apply bg-gray-900 text-white;
+    background: linear-gradient(135deg, #000000 0%, #111827 50%, #1f2937 100%);
   }
 
   html {
@@ -20,15 +26,15 @@
 
 @layer components {
   .glass-card {
-    @apply backdrop-blur-xl bg-white/10 border border-white/20 shadow-[0_8px_32px_rgba(31,38,135,0.37)];
+    @apply backdrop-blur-xl bg-gray-50/90 dark:bg-white/10 border border-gray-200 dark:border-white/20 shadow-lg dark:shadow-[0_8px_32px_rgba(31,38,135,0.37)] transition-all duration-300;
   }
 
   .glass-card-hover {
-    @apply hover:bg-white/20 hover:border-white/30 transition-all duration-300;
+    @apply hover:bg-gray-100 dark:hover:bg-white/20 hover:border-gray-300 dark:hover:border-white/30 transition-all duration-300;
   }
 
   .gradient-text {
-    @apply bg-gradient-to-r from-violet-400 via-pink-400 to-primary-400 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-violet-600 via-pink-600 to-purple-600 dark:from-violet-400 dark:via-pink-400 dark:to-purple-400 bg-clip-text text-transparent;
   }
 
   .gradient-bg {
@@ -38,23 +44,35 @@
   }
 
   .neon-glow {
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.3), 0 0 40px rgba(124, 58, 237, 0.2);
+  }
+
+  .dark .neon-glow {
     box-shadow: 0 0 20px rgba(124, 58, 237, 0.5), 0 0 40px rgba(124, 58, 237, 0.3);
   }
 
   .neon-glow-pink {
+    box-shadow: 0 0 20px rgba(244, 114, 182, 0.3), 0 0 40px rgba(244, 114, 182, 0.2);
+  }
+
+  .dark .neon-glow-pink {
     box-shadow: 0 0 20px rgba(244, 114, 182, 0.5), 0 0 40px rgba(244, 114, 182, 0.3);
   }
 
   .neon-glow-cyan {
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.3), 0 0 40px rgba(6, 182, 212, 0.2);
+  }
+
+  .dark .neon-glow-cyan {
     box-shadow: 0 0 20px rgba(6, 182, 212, 0.5), 0 0 40px rgba(6, 182, 212, 0.3);
   }
 
   .btn-primary {
-    @apply bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg;
+    @apply bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-700 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl;
   }
 
   .btn-secondary {
-    @apply glass-card hover:bg-white/20 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105;
+    @apply glass-card hover:bg-gray-200 dark:hover:bg-white/20 text-gray-900 dark:text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105;
   }
 
   .card-3d {
@@ -117,6 +135,26 @@
   }
   100% {
     background-position: calc(200px + 100%) 0;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes gradient {
+  0%, 100% {
+    background-size: 200% 200%;
+    background-position: left center;
+  }
+  50% {
+    background-size: 200% 200%;
+    background-position: right center;
   }
 }
 

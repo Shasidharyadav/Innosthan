@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
-import { Plus, Edit, Trash2, Lock, Unlock, BookOpen, Clock, Award, Save, X } from 'lucide-react'
+import { Plus, Edit, Trash2, Lock, Unlock, BookOpen, Save, X, Users, TrendingUp } from 'lucide-react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import { useAuthStore } from '../../stores/authStore'
 import { useThemeStore } from '../../stores/themeStore'
+import BackButton from '../../components/BackButton'
 
 interface Module {
   _id?: string
@@ -12,20 +13,21 @@ interface Module {
   description: string
   moduleNumber: number
   isUnlocked: boolean
-  duration: string
-  xpReward: number
-  lessons: number
+  duration?: string
+  xpReward?: number
+  lessons?: number
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert'
   progress?: number
+  createdBy?: string
 }
 
-const AdminModules = () => {
+const MentorCourses = () => {
   const [modules, setModules] = useState<Module[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editingModule, setEditingModule] = useState<Module | null>(null)
-  const { token } = useAuthStore()
-  const { isDarkMode } = useThemeStore()
+  const { token, user } = useAuthStore()
+  const { isDarkMode, toggleTheme } = useThemeStore()
 
   const [formData, setFormData] = useState<Module>({
     title: '',
@@ -47,18 +49,22 @@ const AdminModules = () => {
   }, [isDarkMode])
 
   useEffect(() => {
-    fetchModules()
+    fetchMyCourses()
   }, [])
 
-  const fetchModules = async () => {
+  const fetchMyCourses = async () => {
     try {
       const response = await axios.get('/api/modules', {
         headers: { Authorization: `Bearer ${token}` }
       })
-      setModules(response.data.modules || [])
+      // Filter modules created by this mentor
+      const myModules = (response.data.modules || []).filter((m: any) => 
+        m.createdBy === user?._id || m.createdBy?._id === user?._id
+      )
+      setModules(myModules)
     } catch (error: any) {
-      console.error('Fetch modules error:', error)
-      toast.error('Failed to load modules')
+      console.error('Fetch courses error:', error)
+      toast.error('Failed to load your courses')
     } finally {
       setLoading(false)
     }
@@ -69,39 +75,37 @@ const AdminModules = () => {
     
     try {
       if (editingModule?._id) {
-        // Update existing module
         await axios.put(`/api/modules/${editingModule._id}`, formData, {
           headers: { Authorization: `Bearer ${token}` }
         })
-        toast.success('Module updated successfully!')
+        toast.success('Course updated successfully!')
       } else {
-        // Create new module
         await axios.post('/api/modules', formData, {
           headers: { Authorization: `Bearer ${token}` }
         })
-        toast.success('Module created successfully!')
+        toast.success('Course created successfully!')
       }
       
-      fetchModules()
+      fetchMyCourses()
       closeModal()
     } catch (error: any) {
-      console.error('Save module error:', error)
-      toast.error(error.response?.data?.message || 'Failed to save module')
+      console.error('Save course error:', error)
+      toast.error(error.response?.data?.message || 'Failed to save course')
     }
   }
 
   const handleDelete = async (moduleId: string) => {
-    if (!window.confirm('Are you sure you want to delete this module?')) return
+    if (!window.confirm('Are you sure you want to delete this course?')) return
 
     try {
       await axios.delete(`/api/modules/${moduleId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
-      toast.success('Module deleted successfully!')
-      fetchModules()
+      toast.success('Course deleted successfully!')
+      fetchMyCourses()
     } catch (error: any) {
-      console.error('Delete module error:', error)
-      toast.error('Failed to delete module')
+      console.error('Delete course error:', error)
+      toast.error('Failed to delete course')
     }
   }
 
@@ -111,11 +115,11 @@ const AdminModules = () => {
         { ...module, isUnlocked: !module.isUnlocked },
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      toast.success(`Module ${!module.isUnlocked ? 'unlocked' : 'locked'}!`)
-      fetchModules()
+      toast.success(`Course ${!module.isUnlocked ? 'unlocked' : 'locked'}!`)
+      fetchMyCourses()
     } catch (error: any) {
       console.error('Toggle lock error:', error)
-      toast.error('Failed to update module')
+      toast.error('Failed to update course')
     }
   }
 
@@ -142,16 +146,6 @@ const AdminModules = () => {
   const closeModal = () => {
     setShowModal(false)
     setEditingModule(null)
-    setFormData({
-      title: '',
-      description: '',
-      moduleNumber: 1,
-      isUnlocked: true,
-      duration: '2h',
-      xpReward: 100,
-      lessons: 5,
-      difficulty: 'Beginner'
-    })
   }
 
   const getDifficultyColor = (difficulty: string) => {
@@ -175,6 +169,21 @@ const AdminModules = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <BackButton showHomeButton={false} />
+          <button
+            onClick={toggleTheme}
+            className="p-3 rounded-xl bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 transition-colors shadow-md"
+          >
+            {isDarkMode ? (
+              <span className="text-yellow-400">☀️</span>
+            ) : (
+              <span className="text-gray-700">🌙</span>
+            )}
+          </button>
+        </div>
+
         <motion.div
           className="flex items-center justify-between mb-8"
           initial={{ y: -50, opacity: 0 }}
@@ -182,8 +191,8 @@ const AdminModules = () => {
           transition={{ duration: 0.6 }}
         >
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">Module Management 📚</h1>
-            <p className="text-gray-600 dark:text-white/60 text-lg">Create and manage learning modules for students</p>
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">My Courses 📚</h1>
+            <p className="text-gray-600 dark:text-white/60 text-lg">Create and manage courses to guide your students</p>
           </div>
           
           <button
@@ -191,7 +200,7 @@ const AdminModules = () => {
             className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-violet-500 to-pink-500 rounded-xl text-white font-semibold hover:scale-105 transition-transform shadow-lg"
           >
             <Plus className="w-5 h-5" />
-            <span>Add Module</span>
+            <span>Create Course</span>
           </button>
         </motion.div>
 
@@ -209,7 +218,7 @@ const AdminModules = () => {
               </div>
               <div>
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">{modules.length}</div>
-                <div className="text-sm text-gray-600 dark:text-white/60">Total Modules</div>
+                <div className="text-sm text-gray-600 dark:text-white/60">My Courses</div>
               </div>
             </div>
           </motion.div>
@@ -226,7 +235,7 @@ const AdminModules = () => {
               </div>
               <div>
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">{modules.filter(m => m.isUnlocked).length}</div>
-                <div className="text-sm text-gray-600 dark:text-white/60">Unlocked</div>
+                <div className="text-sm text-gray-600 dark:text-white/60">Published</div>
               </div>
             </div>
           </motion.div>
@@ -239,11 +248,11 @@ const AdminModules = () => {
           >
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl flex items-center justify-center">
-                <Award className="w-6 h-6 text-white" />
+                <Users className="w-6 h-6 text-white" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">{modules.reduce((sum, m) => sum + m.xpReward, 0)}</div>
-                <div className="text-sm text-gray-600 dark:text-white/60">Total XP</div>
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">0</div>
+                <div className="text-sm text-gray-600 dark:text-white/60">Students</div>
               </div>
             </div>
           </motion.div>
@@ -256,17 +265,17 @@ const AdminModules = () => {
           >
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl flex items-center justify-center">
-                <Clock className="w-6 h-6 text-white" />
+                <TrendingUp className="w-6 h-6 text-white" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">{modules.reduce((sum, m) => sum + parseInt(m.duration || '0'), 0)}h</div>
-                <div className="text-sm text-gray-600 dark:text-white/60">Total Hours</div>
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">{modules.reduce((sum, m) => sum + (m.xpReward || 0), 0)}</div>
+                <div className="text-sm text-gray-600 dark:text-white/60">Total XP</div>
               </div>
             </div>
           </motion.div>
         </div>
 
-        {/* Modules Grid */}
+        {/* Courses Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {modules.map((module, index) => (
             <motion.div
@@ -295,7 +304,6 @@ const AdminModules = () => {
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{module.title}</h3>
               <p className="text-gray-600 dark:text-white/70 mb-4 line-clamp-2">{module.description}</p>
 
-              {/* Module Info */}
               <div className="grid grid-cols-3 gap-2 mb-4">
                 <div className="text-center bg-gray-100 dark:bg-white/5 p-2 rounded-lg">
                   <div className="text-xs text-gray-600 dark:text-white/60">Duration</div>
@@ -311,7 +319,6 @@ const AdminModules = () => {
                 </div>
               </div>
 
-              {/* Actions */}
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => handleToggleLock(module)}
@@ -321,7 +328,7 @@ const AdminModules = () => {
                       : 'bg-mint-500/20 text-mint-400 hover:bg-mint-500/30'
                   }`}
                 >
-                  {module.isUnlocked ? 'Lock' : 'Unlock'}
+                  {module.isUnlocked ? 'Unpublish' : 'Publish'}
                 </button>
                 <button
                   onClick={() => openModal(module)}
@@ -348,13 +355,13 @@ const AdminModules = () => {
             animate={{ scale: 1, opacity: 1 }}
           >
             <BookOpen className="w-16 h-16 text-gray-400 dark:text-white/40 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No Modules Yet</h3>
-            <p className="text-gray-600 dark:text-white/60 mb-6">Create your first learning module to get started!</p>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No Courses Yet</h3>
+            <p className="text-gray-600 dark:text-white/60 mb-6">Create your first course to start guiding students!</p>
             <button
               onClick={() => openModal()}
               className="px-6 py-3 bg-gradient-to-r from-violet-500 to-pink-500 rounded-xl text-white font-semibold hover:scale-105 transition-transform"
             >
-              Create Module
+              Create Course
             </button>
           </motion.div>
         )}
@@ -369,7 +376,7 @@ const AdminModules = () => {
             >
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {editingModule ? 'Edit Module' : 'Create New Module'}
+                  {editingModule ? 'Edit Course' : 'Create New Course'}
                 </h2>
                 <button
                   onClick={closeModal}
@@ -383,7 +390,7 @@ const AdminModules = () => {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-white/80 mb-2">
-                      Module Number
+                      Course Number
                     </label>
                     <input
                       type="number"
@@ -414,13 +421,13 @@ const AdminModules = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-white/80 mb-2">
-                    Module Title
+                    Course Title
                   </label>
                   <input
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder="e.g., Introduction to Entrepreneurship"
+                    placeholder="e.g., Advanced Business Strategy"
                     className="w-full px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/40 focus:outline-none focus:border-violet-500 transition-colors"
                     required
                   />
@@ -491,7 +498,7 @@ const AdminModules = () => {
                     className="w-5 h-5 rounded border-gray-300 dark:border-white/20 text-violet-500 focus:ring-violet-500"
                   />
                   <label htmlFor="isUnlocked" className="text-sm font-medium text-gray-700 dark:text-white/80">
-                    Unlock module for students
+                    Publish course for students
                   </label>
                 </div>
 
@@ -501,7 +508,7 @@ const AdminModules = () => {
                     className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-violet-500 to-pink-500 rounded-xl text-white font-semibold hover:scale-105 transition-transform"
                   >
                     <Save className="w-5 h-5" />
-                    <span>{editingModule ? 'Update Module' : 'Create Module'}</span>
+                    <span>{editingModule ? 'Update Course' : 'Create Course'}</span>
                   </button>
                   <button
                     type="button"
@@ -520,4 +527,5 @@ const AdminModules = () => {
   )
 }
 
-export default AdminModules
+export default MentorCourses
+

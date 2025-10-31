@@ -40,6 +40,7 @@ export interface IModule extends Document {
   estimatedHours: number
   difficulty: 'beginner' | 'intermediate' | 'advanced'
   tags: string[]
+  createdBy?: mongoose.Types.ObjectId
   createdAt: Date
   updatedAt: Date
 }
@@ -117,13 +118,16 @@ const moduleSchema = new Schema<IModule>({
   },
   tags: [{
     type: String
-  }]
+  }],
+  createdBy: {
+    type: Schema.Types.ObjectId,
+    ref: 'User'
+  }
 }, {
   timestamps: true
 })
 
-// Index for performance
-moduleSchema.index({ moduleNumber: 1 })
+// Index for performance (moduleNumber already has unique index from schema definition)
 moduleSchema.index({ order: 1 })
 moduleSchema.index({ isUnlocked: 1 })
 

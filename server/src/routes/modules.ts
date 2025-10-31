@@ -34,10 +34,14 @@ router.get('/:id', async (req: AuthRequest, res) => {
   }
 })
 
-// Create module (admin only)
-router.post('/', requireRole(['admin']), async (req: AuthRequest, res) => {
+// Create module (admin and mentor can create)
+router.post('/', requireRole(['admin', 'mentor']), async (req: AuthRequest, res) => {
   try {
-    const module = new Module(req.body)
+    const moduleData = {
+      ...req.body,
+      createdBy: req.user?._id // Track who created the module
+    }
+    const module = new Module(moduleData)
     await module.save()
 
     res.status(201).json({ module })
@@ -47,20 +51,27 @@ router.post('/', requireRole(['admin']), async (req: AuthRequest, res) => {
   }
 })
 
-// Update module (admin only)
-router.put('/:id', requireRole(['admin']), async (req: AuthRequest, res) => {
+// Update module (admin and mentor who created it can update)
+router.put('/:id', requireRole(['admin', 'mentor']), async (req: AuthRequest, res) => {
   try {
-    const module = await Module.findByIdAndUpdate(
+    const module = await Module.findById(req.params.id)
+    if (!module) {
+      return res.status(404).json({ message: 'Module not found' })
+    }
+
+    // Check if mentor can update (only if they created it or if admin)
+    const userId = req.user?._id as any
+    if (req.user?.role === 'mentor' && (module as any).createdBy?.toString() !== userId.toString()) {
+      return res.status(403).json({ message: 'You can only update your own modules' })
+    }
+
+    const updatedModule = await Module.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true, runValidators: true }
     )
 
-    if (!module) {
-      return res.status(404).json({ message: 'Module not found' })
-    }
-
-    res.json({ module })
+    res.json({ module: updatedModule })
   } catch (error) {
     console.error('Update module error:', error)
     res.status(500).json({ message: 'Server error' })

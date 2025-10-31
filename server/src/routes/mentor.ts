@@ -1,8 +1,23 @@
 import express from 'express'
+import User from '../models/User'
 import { AuthRequest } from '../middleware/auth'
 import { requireRole } from '../middleware/auth'
 
 const router = express.Router()
+
+// Get all mentors
+router.get('/list', async (req: AuthRequest, res) => {
+  try {
+    const mentors = await User.find({ role: 'mentor', isVerified: true })
+      .select('name email avatar xp level badges createdAt')
+      .sort({ xp: -1 })
+
+    res.json({ mentors })
+  } catch (error) {
+    console.error('Get mentors error:', error)
+    res.status(500).json({ message: 'Server error' })
+  }
+})
 
 // AI Chat endpoint
 router.post('/chat', async (req: AuthRequest, res) => {
@@ -33,9 +48,14 @@ router.post('/chat', async (req: AuthRequest, res) => {
 })
 
 // Get mentor sessions
-router.get('/sessions', requireRole(['mentor', 'admin']), async (req: AuthRequest, res) => {
+router.get('/sessions', async (req: AuthRequest, res) => {
   try {
-    // TODO: Implement mentor sessions
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication required' })
+    }
+
+    // TODO: Implement mentor sessions with proper Session model
+    // For now, return empty array
     const sessions: any[] = []
     res.json({ sessions })
   } catch (error) {
@@ -45,9 +65,13 @@ router.get('/sessions', requireRole(['mentor', 'admin']), async (req: AuthReques
 })
 
 // Create mentor session
-router.post('/sessions', requireRole(['mentor', 'admin']), async (req: AuthRequest, res) => {
+router.post('/sessions', async (req: AuthRequest, res) => {
   try {
-    // TODO: Implement create mentor session
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication required' })
+    }
+
+    // TODO: Implement create mentor session with proper Session model
     res.status(201).json({ message: 'Session created successfully' })
   } catch (error) {
     console.error('Create session error:', error)
