@@ -162,5 +162,200 @@ router.post('/:id/ai-suggestions', async (req: AuthRequest, res) => {
   }
 })
 
+// Save version of current analysis
+router.post('/:id/versions', async (req: AuthRequest, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication required' })
+    }
+
+    const analysis = await SwotAnalysis.findOne({
+      _id: req.params.id,
+      userId: req.user._id
+    })
+
+    if (!analysis) {
+      return res.status(404).json({ message: 'SWOT analysis not found' })
+    }
+
+    const versionNumber = (analysis.versions?.length || 0) + 1
+    const snapshot = {
+      ideaTitle: analysis.ideaTitle,
+      description: analysis.description,
+      strengths: analysis.strengths,
+      weaknesses: analysis.weaknesses,
+      opportunities: analysis.opportunities,
+      threats: analysis.threats,
+      tags: analysis.tags,
+      insights: analysis.insights
+    }
+
+    // Ensure versions is available and use a type-safe push via `any` to avoid Mongoose DocumentArray assignment issues
+    const av = (analysis as any).versions || []
+    av.push({
+      versionNumber,
+      snapshot,
+      changedAt: new Date(),
+      changeDescription: req.body.changeDescription || `Version ${versionNumber}`
+    })
+    ;(analysis as any).versions = av
+
+    await analysis.save()
+    res.json({ analysis, message: `Version ${versionNumber} saved` })
+  } catch (error) {
+    console.error('Save version error:', error)
+    res.status(500).json({ message: 'Server error' })
+  }
+})
+
+// Get all versions of an analysis
+router.get('/:id/versions', async (req: AuthRequest, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication required' })
+    }
+
+    const analysis = await SwotAnalysis.findOne({
+      _id: req.params.id,
+      userId: req.user._id
+    })
+
+    if (!analysis) {
+      return res.status(404).json({ message: 'SWOT analysis not found' })
+    }
+
+    res.json({ versions: analysis.versions || [] })
+  } catch (error) {
+    console.error('Get versions error:', error)
+    res.status(500).json({ message: 'Server error' })
+  }
+})
+
+// Restore from a specific version
+router.post('/:id/versions/:versionNumber/restore', async (req: AuthRequest, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication required' })
+    }
+
+    const analysis = await SwotAnalysis.findOne({
+      _id: req.params.id,
+      userId: req.user._id
+    })
+
+    if (!analysis) {
+      return res.status(404).json({ message: 'SWOT analysis not found' })
+    }
+
+    const version = analysis.versions?.find(v => v.versionNumber === parseInt(req.params.versionNumber))
+    if (!version) {
+      return res.status(404).json({ message: 'Version not found' })
+    }
+
+    const snapshot = version.snapshot as any
+    analysis.ideaTitle = snapshot.ideaTitle
+    analysis.description = snapshot.description
+    analysis.strengths = snapshot.strengths
+    analysis.weaknesses = snapshot.weaknesses
+    analysis.opportunities = snapshot.opportunities
+    analysis.threats = snapshot.threats
+    analysis.tags = snapshot.tags
+
+    await analysis.save()
+    res.json({ analysis, message: `Restored from version ${req.params.versionNumber}` })
+  } catch (error) {
+    console.error('Restore version error:', error)
+    res.status(500).json({ message: 'Server error' })
+  }
+})
+
+// Generate insights
+router.post('/:id/generate-insights', async (req: AuthRequest, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication required' })
+    }
+
+    const analysis = await SwotAnalysis.findOne({
+      _id: req.params.id,
+      userId: req.user._id
+    })
+
+    if (!analysis) {
+      return res.status(404).json({ message: 'SWOT analysis not found' })
+    }
+
+    const insights: any[] = []
+
+    // High-impact weaknesses that need mitigation
+    const highWeaknesses = analysis.weaknesses.filter(w => w.impact === 'high')
+    if (highWeaknesses.length > 0) {
+      insights.push({
+        type: 'critical',
+        title: 'Critical Weaknesses to Address',
+        description: `You have ${highWeaknesses.length} high-impact weaknesses. Prioritize creating mitigation strategies.`,
+        priority: 1,
+        category: 'weakness'
+      })
+    }
+
+    // Strengths-Opportunities alignment
+    const highOpportunities = analysis.opportunities.filter(o => o.timeframe === 'short_term')
+    const highStrengths = analysis.strengths.filter(s => s.impact === 'high')
+    if (highStrengths.length > 0 && highOpportunities.length > 0) {
+      insights.push({
+        type: 'opportunity',
+        title: 'Leverage Strengths for Quick Wins',
+        description: `You have ${highStrengths.length} strong strengths and ${highOpportunities.length} short-term opportunities. Consider combining them.`,
+        priority: 2,
+        category: 'opportunity'
+      })
+    }
+
+    // Threats that need monitoring
+    const highThreats = analysis.threats.filter(t => t.likelihood === 'high')
+    if (highThreats.length > 0) {
+      insights.push({
+        type: 'warning',
+        title: 'High-Likelihood Threats Detected',
+        description: `${highThreats.length} threats have high likelihood. Review mitigation plans regularly.`,
+        priority: 2,
+        category: 'threat'
+      })
+    }
+
+    // Imbalance detection
+    const avgStrengths = analysis.strengths.reduce((sum, s) => sum + (s.priority || 5), 0) / (analysis.strengths.length || 1)
+    const avgWeaknesses = analysis.weaknesses.reduce((sum, w) => sum + (w.priority || 5), 0) / (analysis.weaknesses.length || 1)
+    if (avgWeaknesses > avgStrengths + 2) {
+      insights.push({
+        type: 'warning',
+        title: 'Imbalanced SWOT Profile',
+        description: 'Your weaknesses appear to outweigh your strengths. Consider focusing on strength-building initiatives.',
+        priority: 3,
+        category: 'balance'
+      })
+    }
+
+    // No data for a quadrant
+    if (analysis.threats.length === 0) {
+      insights.push({
+        type: 'info',
+        title: 'Threats Section Empty',
+        description: 'Consider adding potential threats to ensure comprehensive analysis.',
+        priority: 4,
+        category: 'completeness'
+      })
+    }
+
+    analysis.insights = insights
+    await analysis.save()
+    res.json({ analysis, insights })
+  } catch (error) {
+    console.error('Generate insights error:', error)
+    res.status(500).json({ message: 'Server error' })
+  }
+})
+
 export default router
 
